@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Case Listing{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Search and Filter Section -->
+    <div class="row">
+        <div class="col-md-6">
+            <input type="text" id="search-bar" class="form-control" placeholder="Search Test Cases"
+                   hx-get="{% url 'test_case_list' %}" hx-trigger="keyup changed delay:500ms" hx-target="#test-case-list">
+        </div>
+        <!-- Add more filters (by suite, version) here as needed -->
+        <div class="col-md-6 text-right">
+            <a href="{% url 'test_case_create' %}" class="btn btn-primary">Create New Test Case</a>
+        </div>
+    </div>
+
+    <!-- Test Case List -->
+    <div id="test-case-list" class="mt-4">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Last Modified</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for test_case in test_cases %}
+                <tr>
+                    <td>{{ test_case.name }}</td>
+                    <td>{{ test_case.version }}</td>
+                    <td>{{ test_case.last_modified|date:"M d, Y" }}</td>
+                    <td>
+                        <a href="{% url 'test_case_edit' test_case.id %}" class="btn btn-secondary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No test cases found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

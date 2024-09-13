@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}TEAMS{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    
+    <!-- Custom CSS (if needed) -->
+    <!--<link href="{% static 'css/styles.css' %}" rel="stylesheet"> -->
+    
+    <!-- HTMX -->
+    <script src="{% static 'js/htmx/htmx.min.js' %}" defer></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">TEAMS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    {% block navbar %}
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'test_case_list' %}">Test Cases</a>
+                    </li>
+                    <!-- Add more links for other sections as needed -->
+                    {% endblock %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Block -->
+    <main class="container mt-5">
+        {% block content %}
+        <!-- Page-specific content will go here -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container">
+            <span class="text-muted">© 2024 TEAMS - Test Execution and Management System</span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS and dependencies (Popper.js and Bootstrap.js) -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
