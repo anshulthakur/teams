@@ -22,7 +22,7 @@ def test_case_create(request):
     if query:
         test_cases = test_cases.filter(name__icontains=query)
 
-    return render(request, 'test_case/test_case_list.html', {
+    return render(request, 'test_case/test_case_form.html', {
         'test_cases': test_cases
     })
 
@@ -34,6 +34,6 @@ def test_case_edit(request):
     if query:
         test_cases = test_cases.filter(name__icontains=query)
 
-    return render(request, 'test_case/test_case_list.html', {
+    return render(request, 'test_case/test_case_form.html', {
         'test_cases': test_cases
     })
