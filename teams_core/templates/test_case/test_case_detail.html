@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Test Case Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ testcase.name }}</h1>
+    <h2>ID: {{ testcase.id }}</h2>
+    <section>
+        <h3>Description</h3>
+        <p>{{ content.description }}</p>
+    </section>
+
+    {% for step, details in content.proceduralSteps.items %}
+    <section>
+        <h3>{{ step }}</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Step Description</th>
+                    <th>Expected Output</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in details %}
+                <tr>
+                    <td>{{ detail.stepDescription }}</td>
+                    <td>{{ detail.expectedOutput }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}

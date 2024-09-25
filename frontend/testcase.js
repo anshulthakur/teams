@@ -7,7 +7,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/tests/test-cases/create/" element={<TestCaseEdit message="Welcome to the test case form page"/>} />
+        <Route path="/tests/test-cases/create/" element={<TestCaseEdit/>} />
+        <Route path="/tests/test-cases/edit/:id" element={<TestCaseEdit />} />
         {/* Add other routes as needed */}
       </Routes>
     </Router>

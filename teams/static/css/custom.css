@@ -1,0 +1,29 @@
+.image-browser {
+    position: fixed;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow-y: auto;
+  }
+  
+  .image-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+  }
+  
+  .image-grid img {
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .image-grid img:hover {
+    transform: scale(1.05);
+  }
+  

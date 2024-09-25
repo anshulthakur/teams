@@ -30,7 +30,7 @@
             <tbody>
                 {% for test_case in test_cases %}
                 <tr>
-                    <td>{{ test_case.name }}</td>
+                    <td><a href="{% url 'test_case_detail' test_case.id %}">{{ test_case.name }}</a></td>
                     <td>{{ test_case.version }}</td>
                     <td>{{ test_case.last_modified|date:"M d, Y" }}</td>
                     <td>
