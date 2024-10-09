@@ -15,7 +15,7 @@
     <!--<link href="{% static 'css/styles.css' %}" rel="stylesheet"> -->
     
     <!-- HTMX -->
-    <script src="{% static 'js/htmx/htmx.min.js' %}" defer></script>
+    <script src="{% static 'js/htmx/htmx.js' %}" defer></script>
     {% block extra_css %}
 
     {% endblock %}
@@ -60,5 +60,21 @@
 
     <!-- Bootstrap 5 JS and dependencies (Popper.js and Bootstrap.js) -->
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <!-- Enable HTMX Logging After It Loads -->
+    <!--
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            htmx.logAll();  // This ensures htmx is defined before calling logAll
+        });
+
+        document.body.addEventListener("htmx:afterRequest", function(evt) {
+            console.log("htmx:afterRequest fired!", evt);
+        });
+
+        document.body.addEventListener("htmx:beforeRequest", function(evt) {
+            console.log("htmx:beforeRequest fired!", evt);
+        });
+    </script>-->
+    
 </body>
 </html>
