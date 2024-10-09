@@ -1,45 +1,53 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-
 import axios from 'axios';
 import TestCaseForm from './TestCaseForm';
 
 const TestCaseEdit = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Get the id from the URL params (if any)
   const [testCaseData, setTestCaseData] = useState(null);
-  const testcaseId = parseInt(id, 10);  // Convert the id to an integer
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
     const fetchTestCaseData = async () => {
-        try {
-            const response = await axios.get(`/tests/test-cases/testcases/${id}/`);
-            
-            var content = JSON.parse(response.data.content);
-            console.log(content);
-            var testcaseBody = {
-              title: response.data.name,
-              description: content.description,
-              id: content.id,
-              proceduralSteps: content.proceduralSteps
-            }
+      try {
+        if (id) {
+          // If there is an id, fetch the existing test case data
+          const response = await axios.get(`/tests/test-cases/testcases/${id}/`);
+          const content = JSON.parse(response.data.content);
 
-            setTestCaseData(testcaseBody);
-        } catch (error) {
-            console.error('Error fetching test case data:', error);
+          const testcaseBody = {
+            title: response.data.name,
+            description: content.description,
+            id: response.data.id,
+            proceduralSteps: content.proceduralSteps,
+          };
+
+          setTestCaseData(testcaseBody);
         }
-      };
-
-      if (id) {
-          fetchTestCaseData();
+      } catch (error) {
+        console.error('Error fetching test case data:', error);
+      } finally {
+        setLoading(false); // Stop loading whether data is fetched or not
       }
+    };
+
+    if (id) {
+      // Fetch data only if there's an ID (i.e., editing an existing test case)
+      fetchTestCaseData();
+    } else {
+      // If no id, it's a new test case, so no need to fetch data
+      setLoading(false); // Stop loading and render blank form
+    }
   }, [id]);
 
-  if (!testCaseData) {
-      return <div>Loading...</div>;
-  }
   return (
     <div>
-        <TestCaseForm existingData={testCaseData}/>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <TestCaseForm existingData={testCaseData} />
+      )}
     </div>
   );
 };

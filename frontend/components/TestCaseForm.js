@@ -1,6 +1,4 @@
-// TestCaseForm.js
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import MarkdownIt from 'markdown-it';
 import MdEditor from 'react-markdown-editor-lite';
@@ -8,7 +6,6 @@ import 'react-markdown-editor-lite/lib/index.css'; // Import editor styles
 
 axios.defaults.headers.common['X-CSRFToken'] = csrftoken;
 
-// Initialize Showdown or Remarkable
 import Showdown from 'showdown';
 const converter = new Showdown.Converter({
   tables: true,
@@ -17,22 +14,40 @@ const converter = new Showdown.Converter({
 
 const TestCaseForm = ({ existingData, onSave }) => {
   // Initialize procedural sections
-  const initialSections = existingData?.proceduralSteps || {
+  const [sections, setSections] = useState({
     Setup: [{ stepDescription: '', expectedOutput: '' }],
     Start: [{ stepDescription: '', expectedOutput: '' }],
     Measure: [{ stepDescription: '', expectedOutput: '' }],
     Stop: [{ stepDescription: '', expectedOutput: '' }],
     Shutdown: [{ stepDescription: '', expectedOutput: '' }],
     Contingencies: [{ stepDescription: '', expectedOutput: '' }],
-  };
-
-  const [sections, setSections] = useState(initialSections);
-  const [title, setTitle] = useState(existingData?.title || '');
-  const [description, setDescription] = useState(existingData?.description || '');
-  const [testCaseId, setTestCaseId] = useState(existingData?.testCaseId || '');
+  });
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [testCaseId, setTestCaseId] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
+  useEffect(() => {
+    if (existingData) {
+      // Populate form with existing data for editing
+      setTitle(existingData.title);
+      setDescription(existingData.description);
+      setTestCaseId(existingData.id);
+      setSections(existingData.proceduralSteps);
+    }
+  }, [existingData]);  // Re-run if existingData changes
+
   const fileInputRefs = useRef({});
+
+  useEffect(() => {
+    if (existingData) {
+      // Populate form with existing data for editing
+      setTitle(existingData.title);
+      setDescription(existingData.description);
+      setTestCaseId(existingData.id);
+      setSections(existingData.proceduralSteps);
+    }
+  }, [existingData]);  // Re-run if existingData changes
 
   // Handle adding a new step to a specific section
   const handleAddStep = (section) => {
@@ -59,7 +74,7 @@ const TestCaseForm = ({ existingData, onSave }) => {
 
   const handleEditorChange = (section, index, field, value) => {
     if (!isUploading) {
-        handleStepChange(section, index, field, value);
+      handleStepChange(section, index, field, value);
     }
   };
 
@@ -68,14 +83,14 @@ const TestCaseForm = ({ existingData, onSave }) => {
     setIsUploading(true);  // Disable onChange
     const formData = new FormData();
     formData.append('image', file);  // Ensure 'image' matches what the backend expects
-  
+
     try {
       const response = await axios.post('/tests/api/upload-image/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-  
+
       const imageUrl = response.data.url;
       const updatedStepDescription = sections[section][index].stepDescription + `\n![Image](${imageUrl})\n`;
       handleStepChange(section, index, 'stepDescription', updatedStepDescription);
@@ -86,32 +101,51 @@ const TestCaseForm = ({ existingData, onSave }) => {
       setIsUploading(false);  // Re-enable onChange
     }
   };
-  
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, action) => {
     e.preventDefault();
 
     const content = {
       description: description,
-      id: testCaseId,
-      proceduralSteps: sections
+      proceduralSteps: sections,
     };
+
     const jsonData = {
       name: title,
-      content: JSON.stringify(content)
+      content: JSON.stringify(content),
     };
-    
-    console.log(jsonData);
-    // Uncomment when API is ready
+
     try {
-      const response = await axios.post('/tests/test-cases/testcases/', jsonData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      let response;
+      if (testCaseId) {
+        // If testCaseId exists, update the existing test case with PUT
+        response = await axios.put(`/tests/test-cases/testcases/${testCaseId}/`, jsonData, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      } else {
+        // If testCaseId doesn't exist, create a new test case with POST
+        response = await axios.post('/tests/test-cases/testcases/', jsonData, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        setTestCaseId(response.data.id); // Set new ID after creation
+      }
+
       console.log('Test case saved:', response.data);
-      if (onSave) onSave(response.data); // Callback to parent component
+      if (onSave) onSave(response.data);
+
+      // Redirect based on action
+      if (action === 'edit') {
+        // Redirect to edit page
+        window.location.href = `/tests/test-cases/edit/${response.data.id}/`;
+      } else if (action === 'view') {
+        // Redirect to detail page
+        window.location.href = `/tests/test-cases/${response.data.id}/`;
+      }
     } catch (error) {
       console.error('Error saving the test case:', error);
       alert('Error saving the test case. Please try again.');
@@ -149,18 +183,19 @@ const TestCaseForm = ({ existingData, onSave }) => {
         />
       </div>
 
-      {/* Test Case ID */}
-      <div className="mb-3">
-        <label htmlFor="testCaseId" className="form-label">Test Case ID</label>
-        <input
-          type="text"
-          id="testCaseId"
-          className="form-control"
-          value={testCaseId}
-          onChange={(e) => setTestCaseId(e.target.value)}
-          required
-        />
-      </div>
+      {/* Test Case ID (Hidden for Update Scenario) */}
+      {testCaseId && (
+        <div className="mb-3">
+          <label htmlFor="testCaseId" className="form-label">Test Case ID</label>
+          <input
+            type="text"
+            id="testCaseId"
+            className="form-control"
+            value={testCaseId}
+            readOnly  // Make it read-only for editing
+          />
+        </div>
+      )}
 
       {/* Procedural Steps Accordion */}
       <div className="accordion" id="proceduralStepsAccordion">
@@ -204,18 +239,6 @@ const TestCaseForm = ({ existingData, onSave }) => {
                           ]}
                           onImageUpload={(file) => handleImageUpload(section, index, file)}  // File upload handling
                         />
-                        {/* Hidden File Input for Image Upload */}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          ref={(el) => (fileInputRefs.current[`${section}-${index}-image`] = el)}
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              handleImageUpload(section, index, e.target.files[0]);
-                            }
-                          }}
-                        />
                       </div>
 
                       {/* Expected Output */}
@@ -250,7 +273,21 @@ const TestCaseForm = ({ existingData, onSave }) => {
         })}
       </div>
 
-      <button type="submit" className="btn btn-primary mt-4">Save Test Case</button>
+      {/* Save Buttons */}
+      <button
+        type="button"
+        className="btn btn-primary mt-4"
+        onClick={(e) => handleSubmit(e, 'view')}
+      >
+        Save and View
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary mt-4"
+        onClick={(e) => handleSubmit(e, 'edit')}
+      >
+        Save and Continue Editing
+      </button>
     </form>
   );
 };

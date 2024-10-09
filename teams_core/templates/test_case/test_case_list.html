@@ -10,7 +10,6 @@
             <input type="text" id="search-bar" class="form-control" placeholder="Search Test Cases"
                    hx-get="{% url 'test_case_list' %}" hx-trigger="keyup changed delay:500ms" hx-target="#test-case-list">
         </div>
-        <!-- Add more filters (by suite, version) here as needed -->
         <div class="col-md-6 text-right">
             <a href="{% url 'test_case_create' %}" class="btn btn-primary">Create New Test Case</a>
         </div>
@@ -29,12 +28,20 @@
             </thead>
             <tbody>
                 {% for test_case in test_cases %}
-                <tr>
+                <tr id="test-case-{{ test_case.id }}">
                     <td><a href="{% url 'test_case_detail' test_case.id %}">{{ test_case.name }}</a></td>
                     <td>{{ test_case.version }}</td>
                     <td>{{ test_case.last_modified|date:"M d, Y" }}</td>
                     <td>
                         <a href="{% url 'test_case_edit' test_case.id %}" class="btn btn-secondary">Edit</a>
+                        <button class="btn btn-danger"
+                                hx-delete="{% url 'testcase-detail' test_case.id %}"
+                                hx-confirm="Are you sure you want to delete this test case?"
+                                hx-target="this"
+                                hx-swap="outerHTML remove"
+                                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                            Delete
+                        </button>
                     </td>
                 </tr>
                 {% empty %}

@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}TEAMS{% endblock %}</title>
     
+    <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.ico' %}">
     <!-- Bootstrap 5 CSS -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     
@@ -23,7 +24,10 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">TEAMS</a>
+            <a class="navbar-brand" href="#">
+                <img alt="TEAMS Goat logo" class="d-inline-block align-top" src="{% static 'images/test_goat.png' %}" width="30" height="30" /> 
+                TEAMS
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
