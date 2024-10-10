@@ -9,12 +9,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.files.storage import default_storage
 from django.conf import settings
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 
 from rest_framework import viewsets
-from .models import TestCase
-from .serializers import TestCaseSerializer
+from .models import TestCase, TestRun, TestExecution
+from .serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer
 import json
+from django.contrib.auth.decorators import login_required
+from .auth import CsrfExemptSessionAuthentication
 
 def test_case_list(request):
     query = request.GET.get('q')  # Get search query from URL
@@ -28,7 +30,6 @@ def test_case_list(request):
         'test_cases': test_cases
     })
 
-
 def test_case_detail(request, id):
     
     test_case = TestCase.objects.get(pk=id)
@@ -40,17 +41,39 @@ def test_case_detail(request, id):
         'content': content
     })
 
+@login_required
 def test_case_create(request):
     return render(request, 'test_case/test_case_form.html', {})
 
+@login_required
 def test_case_edit(request, id):
     test_case = TestCase.objects.get(pk=id)
     return render(request, 'test_case/test_case_form.html', {'testcase': test_case})
 
+def test_run_list(request):
+    test_runs = TestRun.objects.all().order_by('-date')
+    return render(request, 'test_run/test_run_list.html', {
+        'test_runs': test_runs
+    })
+
+def test_run_detail(request, id):
+    test_run = TestRun.objects.get(pk=id)
+    test_executions = test_run.testexecution_set.all()  # Get all executions for this run
+    return render(request, 'test_run/test_run_detail.html', {
+        'test_run': test_run,
+        'test_executions': test_executions
+    })
+
+@login_required
+def test_run_create(request):
+    return render(request, 'test_run/test_run_form.html', {})
+
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     #permission_classes = [IsAuthenticatedOrReadOnly]  # Use more appropriate permission
-    permission_classes = [AllowAny]  # Open access for uploads
+    #permission_classes = [AllowAny]  # Open access for uploads
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
 
     def post(self, request, format=None):
         file_obj = request.FILES.get('image')
@@ -93,4 +116,21 @@ class ImageListView(APIView):
 class TestCaseViewSet(viewsets.ModelViewSet):
     queryset = TestCase.objects.all()
     serializer_class = TestCaseSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+
+
+class TestRunViewSet(viewsets.ModelViewSet):
+    queryset = TestRun.objects.all().order_by('-date')
+    serializer_class = TestRunSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+class TestExecutionViewSet(viewsets.ModelViewSet):
+    queryset = TestExecution.objects.all()
+    serializer_class = TestExecutionSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class

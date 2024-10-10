@@ -1,0 +1,14 @@
+<!-- templates/login.html -->
+{% extends "base.html" %}
+
+{% block meta %}
+{% endblock %}
+
+{% block content %}
+<div class="col pt-4">
+    {% csrf_token %}
+    <h1>You have been logged out!</h1>
+    <p>Thank you for using TEAMS. You have been successfully logged out.</p>
+    <a href="{% url 'login' %}">Click here to log in again</a>
+</div>
+{% endblock content %}

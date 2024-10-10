@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Run Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Test Run Detail</h1>
+    <h2>Date: {{ test_run.date|date:"M d, Y H:i" }}</h2>
+    <h2>Created By: {{ test_run.created_by.username }}</h2>
+
+    <!-- Table of Test Executions -->
+    <section>
+        <h3>Test Executions</h3>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Result</th>
+                    <th>Duration</th>
+                    <th>Date</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for execution in test_executions %}
+                <tr>
+                    <td>{{ execution.testcase.name }}</td>
+                    <td>{{ execution.result }}</td>
+                    <td>{{ execution.duration }}</td>
+                    <td>{{ execution.date|date:"M d, Y H:i" }}</td>
+                    <td>{{ execution.notes }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No executions found for this run.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

@@ -23,6 +23,7 @@ const TestCaseForm = ({ existingData, onSave }) => {
     Contingencies: [{ stepDescription: '', expectedOutput: '' }],
   });
   const [title, setTitle] = useState('');
+  const [oid, setOid] = useState('');
   const [description, setDescription] = useState('');
   const [testCaseId, setTestCaseId] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -31,6 +32,7 @@ const TestCaseForm = ({ existingData, onSave }) => {
     if (existingData) {
       // Populate form with existing data for editing
       setTitle(existingData.title);
+      setOid(existingData.oid);
       setDescription(existingData.description);
       setTestCaseId(existingData.id);
       setSections(existingData.proceduralSteps);
@@ -38,16 +40,6 @@ const TestCaseForm = ({ existingData, onSave }) => {
   }, [existingData]);  // Re-run if existingData changes
 
   const fileInputRefs = useRef({});
-
-  useEffect(() => {
-    if (existingData) {
-      // Populate form with existing data for editing
-      setTitle(existingData.title);
-      setDescription(existingData.description);
-      setTestCaseId(existingData.id);
-      setSections(existingData.proceduralSteps);
-    }
-  }, [existingData]);  // Re-run if existingData changes
 
   // Handle adding a new step to a specific section
   const handleAddStep = (section) => {
@@ -116,6 +108,10 @@ const TestCaseForm = ({ existingData, onSave }) => {
       content: JSON.stringify(content),
     };
 
+    if (oid.trim().length > 0) {
+      jsonData.oid = oid.trim().toUpperCase()
+    }
+  
     try {
       let response;
       if (testCaseId) {
@@ -163,6 +159,19 @@ const TestCaseForm = ({ existingData, onSave }) => {
           className="form-control"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </div>
+
+      { /* Test case OID */ }
+      <div className="mb-3">
+        <label htmlFor="oid" className="form-label">Test Case Identifier String (OID)</label>
+        <input
+          type="text"
+          id="oid"
+          className="form-control"
+          value={oid}
+          onChange={(e) => setOid(e.target.value)}
           required
         />
       </div>

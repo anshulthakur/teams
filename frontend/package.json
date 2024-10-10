@@ -38,6 +38,7 @@
         "build": "webpack --config webpack.config.js --mode production"
     },
     "exports": {
-        "testcase": "./testcase.js"
+        "testcase": "./testcase.js",
+        "testrun": "./testrun.js"
     }
 }

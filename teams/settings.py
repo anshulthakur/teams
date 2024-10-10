@@ -155,3 +155,6 @@ WEBPACK_LOADER = {
     "IGNORE": [r'.+\.hot-update.js', r'.+\.map'],
   }
 }
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/testcases/'  # Redirect to the homepage after login
