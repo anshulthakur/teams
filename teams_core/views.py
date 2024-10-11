@@ -7,6 +7,7 @@ from django.contrib.auth.models import User, Group
 from django.core.files.storage import default_storage
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.db import IntegrityError, transaction
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -15,9 +16,12 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework import viewsets
 
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import SessionAuthentication
+
 from teams_core.models import TestCase, TestRun, TestExecution
 from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, UserSerializer, GroupSerializer
-from teams_core.auth import CsrfExemptSessionAuthentication
+#from teams_core.auth import CsrfExemptSessionAuthentication
 
 def test_case_list(request):
     query = request.GET.get('q')  # Get search query from URL
@@ -74,7 +78,7 @@ class ImageUploadView(APIView):
     #permission_classes = [IsAuthenticatedOrReadOnly]  # Use more appropriate permission
     #permission_classes = [AllowAny]  # Open access for uploads
     permission_classes = [IsAuthenticated]
-    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
 
     def post(self, request, format=None):
         file_obj = request.FILES.get('image')
@@ -136,7 +140,8 @@ class TestCaseViewSet(viewsets.ModelViewSet):
     queryset = TestCase.objects.all()
     serializer_class = TestCaseSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -145,13 +150,34 @@ class TestRunViewSet(viewsets.ModelViewSet):
     queryset = TestRun.objects.all().order_by('-date')
     serializer_class = TestRunSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        # Ensure atomic operation
+        with transaction.atomic():
+            # Before creating, validate uniqueness to avoid duplicates
+            if TestRun.objects.filter(date=serializer.validated_data['date'], created_by=self.request.user).exists():
+                raise IntegrityError("A test run with this timestamp already exists for this user.")
+            
+            # Save the TestRun instance
+            serializer.save(created_by=self.request.user)
+
 
 class TestExecutionViewSet(viewsets.ModelViewSet):
     queryset = TestExecution.objects.all()
     serializer_class = TestExecutionSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+
+
+class SetSessionTokenView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        token = request.data.get('token')
+        if token:
+            request.session['jwt_token'] = token
+            return Response({'message': 'Token set in session'}, status=status.HTTP_200_OK)
+        return Response({'error': 'Token not provided'}, status=status.HTTP_400_BAD_REQUEST)

@@ -9,6 +9,8 @@ router = DefaultRouter()
 router.register(r'testcases', views.TestCaseViewSet)
 router.register(r'testruns', views.TestRunViewSet)
 router.register(r'testexecutions', views.TestExecutionViewSet)
+router.register(r'users', views.UserViewSet)
+router.register(r'groups', views.GroupViewSet)
 
 app_name = "teams_core"
 
@@ -22,6 +24,5 @@ urlpatterns = [
     path('api/upload-image/', views.ImageUploadView.as_view(), name='upload-image'),
     path('api/list-images/', views.ImageListView.as_view(), name='list-images'),
     path('test-cases/', include(router.urls)),
-    path('api/', include('rest_framework.urls')),  # Ensure DRF URLs are included
     path('', views.test_case_list, name='test_case_list'),
 ]

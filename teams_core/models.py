@@ -1,5 +1,6 @@
-from django.db import models
+from django.db import models, IntegrityError, transaction
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class TestSuite(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
@@ -15,13 +16,17 @@ class TestCase(models.Model):
     content = models.TextField(blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    suites = models.ManyToManyField(TestSuite, blank=True, null=True)
+    suites = models.ManyToManyField(TestSuite, blank=True)
     version = models.CharField(max_length=20, default="1.0")  # Optional, for version control
 
 class TestRun(models.Model):
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=timezone.now, null=False)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
     notes = models.TextField(blank=True, null=True)
+    published = models.BooleanField(default=True, blank=True)
+
+    class Meta:
+        unique_together = ('date', 'created_by') 
 
 class TestExecution(models.Model):
     TEST_RESULT_CHOICES = [

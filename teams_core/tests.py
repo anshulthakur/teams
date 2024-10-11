@@ -13,7 +13,6 @@ from django.http import HttpRequest as Request # Import HttpRequest
 from teams_core.serializers import *
 from teams_core.models import *
 
-
 User = get_user_model()
 
 # Create your tests here.
@@ -226,4 +225,59 @@ class TestAuthentication(APITestCase):
 
         # Try creating a test run after logging out
         response = self.client.post(reverse('teams_core:testrun-list'), self.test_run_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+class TestRunAPITests(APITestCase):
+    def setUp(self):
+        # Create a user for authentication
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.client.login(username='testuser', password='testpass')
+
+        # Define base URLs for test runs
+        self.test_run_url = reverse('teams_core:testrun-list')  # assuming you have registered test run urls
+        self.test_run_create_data = {
+            'date': timezone.now().isoformat(),  # Use ISO format for date
+            'created_by': self.user.id,
+            'notes': 'Initial test run',
+            'published': True,
+        }
+
+    def test_create_test_run(self):
+        """
+        Test that a new TestRun can be created, and ensure atomicity in case of duplicates.
+        """
+        # Create the first test run
+        response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Attempt to create a duplicate test run with the same timestamp
+        duplicate_response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
+        self.assertEqual(duplicate_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('A test run with this timestamp already exists for this user.', duplicate_response.data['non_field_errors'])
+
+    def test_push_test_run_updates_existing(self):
+        """
+        Test that pushing the same test run with the same timestamp updates the existing one.
+        """
+        # Create the first test run
+        response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        test_run_id = response.data['id']
+
+        # Now, modify the test run data and push it again (same date, same user, updates instead of creates)
+        updated_data = self.test_run_create_data.copy()
+        updated_data['notes'] = 'Updated test run notes'
+
+        update_url = reverse('teams_core:testrun-detail', args=[test_run_id])  # assuming you have registered detail urls
+        update_response = self.client.put(update_url, updated_data, format='json')
+
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(update_response.data['notes'], 'Updated test run notes')
+
+    def test_unauthorized_access(self):
+        """
+        Test that an unauthorized user cannot create or update a TestRun.
+        """
+        self.client.logout()  # Ensure no user is authenticated
+        response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

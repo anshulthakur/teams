@@ -14,6 +14,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class TestCaseSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = TestCase
         fields = ['id', 'name', 'oid', 'author', 'content', 'created_on', 
@@ -40,21 +41,48 @@ class TestExecutionSerializer(serializers.ModelSerializer):
 
 class TestRunSerializer(serializers.ModelSerializer):
     executions = TestExecutionSerializer(many=True, required=False)  # Enable write access
-
+    created_by = serializers.ReadOnlyField(source='created_by.username')
+    
     class Meta:
         model = TestRun
-        fields = ['id', 'date', 'created_by', 'notes', 'executions']
+        fields = ['id', 'date', 'created_by', 'notes', 'executions', 'published']
         extra_kwargs = {
             'created_by': {'required': False},
-            'notes': {'required': False}
+            'notes': {'required': False},
+            'date' : {'required': False},
+            'published': {'required': False}
         }
+    
+    def validate(self, data):
+        user = self.context['request'].user
+        if self.instance is None:  # Only check for uniqueness if creating a new instance
+            if TestRun.objects.filter(date=data['date'], created_by=user).exists():
+                raise serializers.ValidationError("A test run with this timestamp already exists for this user.")
+        return data
 
     def create(self, validated_data):
         executions_data = validated_data.pop('executions', [])
         test_run = TestRun.objects.create(**validated_data)
-
         for execution_data in executions_data:
-            # Manually set the run field before saving each execution
             TestExecution.objects.create(run=test_run, **execution_data)
-
         return test_run
+
+    def update(self, instance, validated_data):
+        executions_data = validated_data.pop('executions', None)
+        instance.notes = validated_data.get('notes', instance.notes)
+        instance.published = validated_data.get('published', instance.published)
+        instance.save()
+
+        if executions_data is not None:
+            # Update or create TestExecution instances
+            for execution_data in executions_data:
+                TestExecution.objects.update_or_create(
+                    run=instance,
+                    testcase=execution_data['testcase'],
+                    defaults={
+                        'result': execution_data['result'],
+                        'notes': execution_data.get('notes', ''),
+                        'duration': execution_data.get('duration', None)
+                    }
+                )
+        return instance
