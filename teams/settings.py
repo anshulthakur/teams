@@ -157,4 +157,4 @@ WEBPACK_LOADER = {
 }
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/testcases/'  # Redirect to the homepage after login
+LOGIN_REDIRECT_URL = '/tests/'  # Redirect to the homepage after login

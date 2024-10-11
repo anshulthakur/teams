@@ -15,7 +15,7 @@ class TestCase(models.Model):
     content = models.TextField(blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-    suites = models.ManyToManyField(TestSuite)
+    suites = models.ManyToManyField(TestSuite, blank=True, null=True)
     version = models.CharField(max_length=20, default="1.0")  # Optional, for version control
 
 class TestRun(models.Model):

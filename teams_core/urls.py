@@ -10,6 +10,7 @@ router.register(r'testcases', views.TestCaseViewSet)
 router.register(r'testruns', views.TestRunViewSet)
 router.register(r'testexecutions', views.TestExecutionViewSet)
 
+app_name = "teams_core"
 
 urlpatterns = [
     path('test-cases/create/', views.test_case_create, name='test_case_create'),

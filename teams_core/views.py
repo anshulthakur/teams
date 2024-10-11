@@ -1,22 +1,23 @@
-from datetime import datetime
 import os
+import json
+from datetime import datetime
+
 from django.shortcuts import render
-from .models import TestCase
+from django.contrib.auth.models import User, Group
+from django.core.files.storage import default_storage
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
-from django.core.files.storage import default_storage
-from django.conf import settings
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
-
 from rest_framework import viewsets
-from .models import TestCase, TestRun, TestExecution
-from .serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer
-import json
-from django.contrib.auth.decorators import login_required
-from .auth import CsrfExemptSessionAuthentication
+
+from teams_core.models import TestCase, TestRun, TestExecution
+from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, UserSerializer, GroupSerializer
+from teams_core.auth import CsrfExemptSessionAuthentication
 
 def test_case_list(request):
     query = request.GET.get('q')  # Get search query from URL
@@ -112,13 +113,33 @@ class ImageListView(APIView):
                     file_data.append({'url': file_url})
 
         return Response(file_data, status=status.HTTP_200_OK)
-    
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited
+    """
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited
+    """
+    queryset = Group.objects.all().order_by('id')
+    serializer_class = GroupSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
 class TestCaseViewSet(viewsets.ModelViewSet):
     queryset = TestCase.objects.all()
     serializer_class = TestCaseSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 class TestRunViewSet(viewsets.ModelViewSet):
     queryset = TestRun.objects.all().order_by('-date')
