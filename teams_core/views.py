@@ -170,14 +170,3 @@ class TestExecutionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]
-
-
-class SetSessionTokenView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        token = request.data.get('token')
-        if token:
-            request.session['jwt_token'] = token
-            return Response({'message': 'Token set in session'}, status=status.HTTP_200_OK)
-        return Response({'error': 'Token not provided'}, status=status.HTTP_400_BAD_REQUEST)

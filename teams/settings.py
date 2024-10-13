@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_htmx',
     'webpack_loader',
-    'djangorestframework-simplejwt'
+    'rest_framework_simplejwt'
 ]
 
 MIDDLEWARE = [

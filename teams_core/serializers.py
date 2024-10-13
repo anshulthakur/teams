@@ -39,6 +39,7 @@ class TestExecutionSerializer(serializers.ModelSerializer):
         }
 
 
+
 class TestRunSerializer(serializers.ModelSerializer):
     executions = TestExecutionSerializer(many=True, required=False)  # Enable write access
     created_by = serializers.ReadOnlyField(source='created_by.username')
@@ -85,4 +86,10 @@ class TestRunSerializer(serializers.ModelSerializer):
                         'duration': execution_data.get('duration', None)
                     }
                 )
-        return instance
+        return instance  # Return the instance to be processed by DRF
+    
+    def to_representation(self, instance):
+        """Customize the representation to include serialized executions."""
+        representation = super().to_representation(instance)  # Call the parent method
+        representation['executions'] = TestExecutionSerializer(instance.testexecution_set.all(), many=True).data
+        return representation  # Return the modified representation

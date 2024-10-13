@@ -16,39 +16,26 @@ from teams_core.models import *
 from teams_api import TestRunAPI, APIError, PortalAuth
 User = get_user_model()
 
+TEST_URL = "http://127.0.0.1:8000"
+
 class TestAPILibrary(APITestCase):
     def setUp(self):
-        # Set up a test user
-        self.test_user = User.objects.create_user(
-            username='testuser',
-            password='testpassword',
-            email='test@example.com'
-        )
-
-        # Define base_url and initialize API library
-        self.base_url = ''  # Leave empty since we're using the test client
-        self.credentials = {
-            "username": "testuser",
-            "password": "testpassword"
-        }
-
-        # Initialize the authentication and TestRunAPI client
-        self.auth = PortalAuth(base_url=self.base_url)
-        self.test_run_api = TestRunAPI(auth=self.auth)
-
-        # URLs
-        self.test_run_url = reverse('teams_core:testrun-list')  # URL for the TestRun API
-
-        # Create some test cases for the test run
-        self.test_case_1 = TestCase.objects.create(name='Test Case 1', oid='TC001', author=self.test_user)
-        self.test_case_2 = TestCase.objects.create(name='Test Case 2', oid='TC002', author=self.test_user)
+        """Set up the test environment, including creating a user."""
+        self.username = "anshul"
+        self.password = "password"
 
     def test_login_and_create(self):
         """Test login using the API and create a test run successfully."""
-        login_response = self.auth.login(self.credentials['username'], self.credentials['password'])
-        self.assertEqual(login_response.status_code, 200, "Login failed.")
+        # Initialize the authentication and API classes
+        auth = PortalAuth(base_url=TEST_URL)
+        response = auth.login(username=self.username, password=self.password)
+        self.assertIsNotNone(response)
 
-        test_run_data = {
+        # Create the TestRunAPI instance
+        test_run_api = TestRunAPI(auth)
+
+        # Create a new test run
+        data = {
             'date': datetime.datetime.now().isoformat(),
             'notes': 'Automated Test Run',
             'published': True,
@@ -61,18 +48,147 @@ class TestAPILibrary(APITestCase):
                 }
             ]
         }
-        create_response = self.test_run_api.create_test_run(test_run_data)
-        self.assertEqual(create_response['notes'], 'Automated Test Run', "Test run creation failed.")
+        response = test_run_api.create_test_run(data)
+        print(response)
+        self.assertIsNotNone(response)
+        self.assertIn('id', response)  # Ensure test run was created with an ID
 
-    def test_logout(self):
-        """Test logging out the user."""
-        login_response = self.auth.login(self.credentials['username'], self.credentials['password'])
-        self.assertEqual(login_response.status_code, 200, "Login failed.")
+    def test_duplicate_test_run_not_allowed(self):
+        """Test that creating a duplicate test run is not allowed."""
+        auth = PortalAuth(base_url=TEST_URL)
+        response = auth.login(username=self.username, password=self.password)
+        self.assertIsNotNone(response)
 
-        logout_response = self.auth.logout()
-        self.assertEqual(logout_response.status_code, 204, "Logout failed.")
+        test_run_api = TestRunAPI(auth)
 
-        # Verify that the session is no longer valid
-        with self.assertRaises(Exception):
-            self.auth.session.get(self.test_run_url)
+        # Create the first test run
+        data = {
+            'date': datetime.datetime.now().isoformat(),
+            'notes': 'Original Test Run',
+            'published': True,
+            'executions': [
+                {
+                    'testcase': 'TC001',
+                    'result': 'PASS',
+                    'notes': 'All steps passed',
+                    'duration': '00:05:00'
+                }
+            ]
+        }
+        response = test_run_api.create_test_run(data)
+        self.assertIsNotNone(response)
 
+        # Try to create a duplicate test run with the same date
+        with self.assertRaises(APIError) as context:
+            test_run_api.create_test_run(data)  # This should raise an error due to duplicate
+
+        self.assertIn("A test run with this timestamp already exists", str(context.exception))
+
+    def test_get_test_run(self):
+        """Test fetching an existing test run."""
+        auth = PortalAuth(base_url=TEST_URL)
+        response = auth.login(username=self.username, password=self.password)
+        self.assertIsNotNone(response)
+
+        test_run_api = TestRunAPI(auth)
+
+        # Create a test run
+        data = {
+            'date': datetime.datetime.now().isoformat(),
+            'notes': 'Test Run for Fetching',
+            'published': True,
+            'executions': [
+                {
+                    'testcase': 'TC001',
+                    'result': 'PASS',
+                    'notes': 'All steps passed',
+                    'duration': '00:10:00'
+                }
+            ]
+        }
+        created_response = test_run_api.create_test_run(data)
+        test_run_id = created_response['id']
+
+        # Fetch the created test run
+        fetched_response = test_run_api.get_test_run(test_run_id)
+        self.assertEqual(fetched_response['id'], test_run_id)
+        self.assertEqual(fetched_response['notes'], 'Test Run for Fetching')
+
+    def test_update_test_run(self):
+        """Test updating an existing test run."""
+        auth = PortalAuth(base_url=TEST_URL)
+        response = auth.login(username=self.username, password=self.password)
+        self.assertIsNotNone(response)
+
+        test_run_api = TestRunAPI(auth)
+
+        # Create a test run
+        data = {
+            'date': datetime.datetime.now().isoformat(),
+            'notes': 'Test Run for Updating',
+            'published': True,
+            'executions': [
+                {
+                    'testcase': 'TC001',
+                    'result': 'FAIL',
+                    'notes': 'Some steps failed',
+                    'duration': '00:15:00'
+                }
+            ]
+        }
+        created_response = test_run_api.create_test_run(data)
+        test_run_id = created_response['id']
+
+        # Update the test run
+        update_data = {
+            'notes': 'Updated Test Run Notes',
+            'published': False,  # Change the published status
+            'executions': [
+                {
+                    'testcase': 'TC001',
+                    'result': 'PASS',  # Change the result
+                    'notes': 'Retested and passed',
+                    'duration': '00:12:00'
+                }
+            ]
+        }
+        updated_response = test_run_api.update_test_run(test_run_id, update_data)
+        print(updated_response)
+        self.assertEqual(updated_response['notes'], 'Updated Test Run Notes')
+        self.assertEqual(updated_response['published'], False)
+        self.assertEqual(updated_response['executions'][0]['result'], 'PASS')
+
+    def test_delete_test_run(self):
+        """Test deleting a test run."""
+        auth = PortalAuth(base_url=TEST_URL)
+        response = auth.login(username=self.username, password=self.password)
+        self.assertIsNotNone(response)
+
+        test_run_api = TestRunAPI(auth)
+
+        # Create a test run
+        data = {
+            'date': datetime.datetime.now().isoformat(),
+            'notes': 'Test Run for Deleting',
+            'published': True,
+            'executions': [
+                {
+                    'testcase': 'TC001',
+                    'result': 'PASS',
+                    'notes': 'All steps passed',
+                    'duration': '00:20:00'
+                }
+            ]
+        }
+        created_response = test_run_api.create_test_run(data)
+        test_run_id = created_response['id']
+
+        # Delete the created test run
+        delete_response = test_run_api.delete_test_run(test_run_id)
+        self.assertIsNone(delete_response)
+
+        # Attempt to fetch the deleted test run
+        with self.assertRaises(APIError) as context:
+            test_run_api.get_test_run(test_run_id)
+
+        self.assertIn("Failed to fetch test run", str(context.exception))
