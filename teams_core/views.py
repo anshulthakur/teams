@@ -2,12 +2,13 @@ import os
 import json
 from datetime import datetime
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User, Group
 from django.core.files.storage import default_storage
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -22,6 +23,8 @@ from rest_framework.authentication import SessionAuthentication
 from teams_core.models import TestCase, TestRun, TestExecution
 from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, UserSerializer, GroupSerializer
 #from teams_core.auth import CsrfExemptSessionAuthentication
+
+from .export import generate_docx, generate_pdf
 
 def test_case_list(request):
     query = request.GET.get('q')  # Get search query from URL
@@ -170,3 +173,31 @@ class TestExecutionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]
+
+def export_testcase(request, id, format_type='docx'):
+    testcase = get_object_or_404(TestCase, id=id)
+
+    try:
+        if format_type == 'docx':
+            docx_filename, docx_path = generate_docx(testcase=testcase)
+            
+            # Serve the DOCX as a response
+            with open(docx_path, 'rb') as docx_file:
+                response = HttpResponse(docx_file.read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                response['Content-Disposition'] = f'attachment; filename="{docx_filename}"'
+                return response
+
+        elif format_type == 'pdf':
+            pdf_filename, pdf_path = generate_pdf(testcase=testcase)
+            
+            if pdf_filename is None:
+                return HttpResponse(pdf_path, status=500)  # This returns the error message if conversion fails
+
+            # Serve the PDF as a response
+            with open(pdf_path, 'rb') as pdf_file:
+                response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{pdf_filename}"'
+                return response
+
+    except OSError as e:
+        return HttpResponse(f"Error: {str(e)}", status=500)

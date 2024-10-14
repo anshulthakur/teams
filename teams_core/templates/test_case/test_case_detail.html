@@ -32,5 +32,10 @@
         </table>
     </section>
     {% endfor %}
+
+    <div class="export-buttons mt-3">
+        <a href="{% url 'teams_core:export_testcase' testcase.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
+        <a href="{% url 'teams_core:export_testcase' testcase.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a>
+    </div>
 </div>
 {% endblock %}

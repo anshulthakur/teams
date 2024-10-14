@@ -6,3 +6,5 @@ Markdown==3.7
 sqlparse==0.5.1
 django-htmx
 djangorestframework-simplejwt
+python-docx
+pypandoc
