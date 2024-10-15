@@ -20,7 +20,7 @@ from rest_framework import viewsets
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import SessionAuthentication
 
-from teams_core.models import TestCase, TestRun, TestExecution
+from teams_core.models import TestCase, TestRun, TestExecution, TestSuite
 from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, UserSerializer, GroupSerializer
 #from teams_core.auth import CsrfExemptSessionAuthentication
 
@@ -57,6 +57,52 @@ def test_case_create(request):
 def test_case_edit(request, id):
     test_case = TestCase.objects.get(pk=id)
     return render(request, 'test_case/test_case_form.html', {'testcase': test_case})
+
+
+def test_suite_list(request):
+    query = request.GET.get('q')  # Get search query from URL
+    test_suites = TestSuite.objects.all()
+
+    # Filter by search query if provided
+    if query:
+        test_suites = test_suites.filter(name__icontains=query)
+
+    return render(request, 'test_suite/test_suite_list.html', {
+        'test_suites': test_suites
+    })
+
+def test_suite_detail(request, id):
+    testsuite = get_object_or_404(TestSuite, id=id)
+    
+    # Get all test cases in the test suite
+    test_cases = testsuite.testcase_set.all()
+
+    # Calculate testing statistics for each test case
+    test_case_stats = []
+    for testcase in test_cases:
+        total_runs = TestExecution.objects.filter(testcase=testcase).count()
+        successful_runs = TestExecution.objects.filter(testcase=testcase, result='PASS').count()
+
+        test_case_stats.append({
+            'testcase': testcase,
+            'total_runs': total_runs,
+            'successful_runs': successful_runs
+        })
+
+    return render(request, 'test_suite/test_suite_detail.html', {
+        'testsuite': testsuite,
+        'test_case_stats': test_case_stats
+    })
+
+@login_required
+def test_suite_create(request):
+    return render(request, 'test_suite/test_suite_form.html', {})
+
+@login_required
+def test_suite_edit(request, id):
+    test_suite = TestSuite.objects.get(pk=id)
+    return render(request, 'test_suite/test_suite_form.html', {'testsuite': test_suite})
+
 
 def test_run_list(request):
     test_runs = TestRun.objects.all().order_by('-date')
@@ -189,6 +235,35 @@ def export_testcase(request, id, format_type='docx'):
 
         elif format_type == 'pdf':
             pdf_filename, pdf_path = generate_pdf(testcase=testcase)
+            
+            if pdf_filename is None:
+                return HttpResponse(pdf_path, status=500)  # This returns the error message if conversion fails
+
+            # Serve the PDF as a response
+            with open(pdf_path, 'rb') as pdf_file:
+                response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{pdf_filename}"'
+                return response
+
+    except OSError as e:
+        return HttpResponse(f"Error: {str(e)}", status=500)
+    
+
+def export_testsuite(request, id, format_type='docx'):
+    testsuite = get_object_or_404(TestSuite, id=id)
+
+    try:
+        if format_type == 'docx':
+            docx_filename, docx_path = generate_docx(testsuite=testsuite)
+            
+            # Serve the DOCX as a response
+            with open(docx_path, 'rb') as docx_file:
+                response = HttpResponse(docx_file.read(), content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                response['Content-Disposition'] = f'attachment; filename="{docx_filename}"'
+                return response
+
+        elif format_type == 'pdf':
+            pdf_filename, pdf_path = generate_pdf(testsuite=testsuite)
             
             if pdf_filename is None:
                 return HttpResponse(pdf_path, status=500)  # This returns the error message if conversion fails

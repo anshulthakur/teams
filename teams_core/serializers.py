@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TestRun, TestExecution, TestCase
+from .models import TestRun, TestExecution, TestCase, TestSuite
 from django.contrib.auth.models import Group, User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,6 +25,30 @@ class TestCaseSerializer(serializers.ModelSerializer):
             'version': {'required': False},
             'oid': {'required': False},
         }
+
+class TestSuiteSerializer(serializers.ModelSerializer):
+    testcases_ids = serializers.PrimaryKeyRelatedField(many=True, write_only=True, queryset=TestCase.objects.all())
+    author = serializers.ReadOnlyField(source='author.username')
+    
+    class Meta:
+        model = TestSuite
+        fields = ['id', 'name', 'created_on', 'last_modified', 'author', 'testcases_ids']
+
+    def create(self, validated_data):
+        testcases_ids = validated_data.pop('testcases_ids', [])
+        testsuite = TestSuite.objects.create(**validated_data)
+        testsuite.testcase_set.set(testcases_ids)  # Assign test cases
+        return testsuite
+
+    def update(self, instance, validated_data):
+        testcases_ids = validated_data.pop('testcases_ids', None)
+        instance.name = validated_data.get('name', instance.name)
+        instance.save()
+        
+        if testcases_ids is not None:
+            instance.testcase_set.set(testcases_ids)
+        return instance
+
 
 class TestExecutionSerializer(serializers.ModelSerializer):
     testcase = serializers.SlugRelatedField(slug_field='oid', queryset=TestCase.objects.all())

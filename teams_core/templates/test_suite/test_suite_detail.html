@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Suite Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>{{ testsuite.name }}</h1>
+    <h2>ID: {{ testsuite.id }}</h2>
+    <h2>Created on: {{ testsuite.created_on|date:"M d, Y H:i" }}</h2>
+    <h2>Last modified: {{ testsuite.last_modified|date:"M d, Y H:i" }}</h2>
+    <h2>Created By: {{ testsuite.author.username }}</h2>
+
+    <section>
+        <h3>Description</h3>
+        <p>{{ testsuite.content }}</p>
+    </section>
+
+    <!-- Table of Test Cases included in the test suite -->
+    <section>
+        <h3>Test Cases</h3>
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Testing Statistics (Successful/Total Runs)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stats in test_case_stats %}
+                <tr>
+                    <td><a href="{% url 'teams_core:test_case_detail' stats.testcase.id %}">{{ stats.testcase.name }}</a></td>
+                    <td>{{ stats.successful_runs }}/{{ stats.total_runs }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">No test cases added to this test suite yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+{% endblock %}

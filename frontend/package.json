@@ -39,6 +39,7 @@
     },
     "exports": {
         "testcase": "./testcase.js",
-        "testrun": "./testrun.js"
+        "testrun": "./testrun.js",
+        "testsuite": "./testsuite.js"
     }
 }

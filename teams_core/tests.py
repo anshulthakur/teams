@@ -143,6 +143,24 @@ class Test_TestCases(SerializerTests):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(TestCase.objects.count(), 0)
 
+class TestSuiteTest(TestCase):
+    def setUp(self):
+        # Create test cases to add to the suite
+        self.testcase1 = TestCase.objects.create(name="Test Case 1", oid="TC001")
+        self.testcase2 = TestCase.objects.create(name="Test Case 2", oid="TC002")
+
+    def test_create_suite(self):
+        suite = TestSuite.objects.create(name="Sample Suite")
+        suite.testcase_set.add(self.testcase1, self.testcase2)
+        self.assertEqual(suite.testcase_set.count(), 2)
+
+    def test_export_suite(self):
+        # Simulate the export suite function
+        suite = TestSuite.objects.create(name="Sample Suite")
+        suite.testcase_set.add(self.testcase1)
+        response = self.client.get(reverse('export_testsuite', args=[suite.id, 'docx']))
+        self.assertEqual(response.status_code, 200)
+
 class TestAuthentication(APITestCase):
 
     def setUp(self):

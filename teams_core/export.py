@@ -5,7 +5,7 @@ import json
 import datetime 
 from docx.shared import Inches
 
-def generate_docx(testcase):
+def generate_docx(testcase, testsuite=None):
     docx_filename = f"testcase_{testcase.id}.docx"
     docx_path = f"/tmp/{docx_filename}"  # Store it temporarily
     # Create a DOCX document
@@ -143,7 +143,7 @@ def generate_docx(testcase):
 
 
 
-def generate_pdf(testcase):
+def generate_pdf(testcase, testsuite=None):
     # First, generate DOCX
     docx_filename, docx_path = generate_docx(testcase)
 
