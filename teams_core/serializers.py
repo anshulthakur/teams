@@ -27,27 +27,35 @@ class TestCaseSerializer(serializers.ModelSerializer):
         }
 
 class TestSuiteSerializer(serializers.ModelSerializer):
-    testcases_ids = serializers.PrimaryKeyRelatedField(many=True, write_only=True, queryset=TestCase.objects.all())
+    testcases = serializers.PrimaryKeyRelatedField(many=True, write_only=True, queryset=TestCase.objects.all())
     author = serializers.ReadOnlyField(source='author.username')
     
     class Meta:
         model = TestSuite
-        fields = ['id', 'name', 'created_on', 'last_modified', 'author', 'testcases_ids']
+        fields = ['id', 'name', 'content', 'created_on', 
+                  'last_modified', 'author', 'testcases']
 
     def create(self, validated_data):
-        testcases_ids = validated_data.pop('testcases_ids', [])
+        testcases = validated_data.pop('testcases', [])
         testsuite = TestSuite.objects.create(**validated_data)
-        testsuite.testcase_set.set(testcases_ids)  # Assign test cases
+        testsuite.testcase_set.set(testcases)  # Assign test cases
         return testsuite
 
     def update(self, instance, validated_data):
-        testcases_ids = validated_data.pop('testcases_ids', None)
+        testcases = validated_data.pop('testcases', None)
         instance.name = validated_data.get('name', instance.name)
+        instance.content = validated_data.get('content', instance.content)
         instance.save()
         
-        if testcases_ids is not None:
-            instance.testcase_set.set(testcases_ids)
+        if testcases is not None:
+            instance.testcase_set.set(testcases)
         return instance
+
+    def to_representation(self, instance):
+        """Customize the representation to include serialized test cases."""
+        representation = super().to_representation(instance)  # Call the parent method
+        representation['testcases'] = TestCaseSerializer(instance.testcase_set.all(), many=True).data
+        return representation  # Return the modified representation
 
 
 class TestExecutionSerializer(serializers.ModelSerializer):

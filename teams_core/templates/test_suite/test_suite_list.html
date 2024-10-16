@@ -7,7 +7,8 @@
     <!-- Title and Create Button -->
     <div class="row">
         <div class="col-md-6">
-            <h2>Test Suites </h2>
+            <input type="text" id="search-bar" class="form-control" placeholder="Search Test Suites"
+                   hx-get="{% url 'teams_core:test_suite_list' %}" hx-trigger="keyup changed delay:500ms" hx-target="#test-suite-list">
         </div>
         <div class="col-md-6 text-right">
             <a href="{% url 'teams_core:test_suite_create' %}" class="btn btn-primary">Create New Test Suite</a>
@@ -15,7 +16,7 @@
     </div>
 
     <!-- Test Suite List -->
-    <div id="test-run-list" class="mt-4">
+    <div id="test-suite-list" class="mt-4">
         <table class="table table-bordered table-hover">
             <thead>
                 <tr>

@@ -21,7 +21,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import SessionAuthentication
 
 from teams_core.models import TestCase, TestRun, TestExecution, TestSuite
-from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, UserSerializer, GroupSerializer
+from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, TestSuiteSerializer, UserSerializer, GroupSerializer
 #from teams_core.auth import CsrfExemptSessionAuthentication
 
 from .export import generate_docx, generate_pdf
@@ -188,6 +188,17 @@ class GroupViewSet(viewsets.ModelViewSet):
 class TestCaseViewSet(viewsets.ModelViewSet):
     queryset = TestCase.objects.all()
     serializer_class = TestCaseSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
+class TestSuiteViewSet(viewsets.ModelViewSet):
+    queryset = TestSuite.objects.all()
+    serializer_class = TestSuiteSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]

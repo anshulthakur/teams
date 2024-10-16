@@ -13,12 +13,11 @@ const TestSuiteEdit = () => {
       try {
         if (id) {
           // Fetch the test suite data if an id exists (editing case)
-          const response = await axios.get(`/tests/test-suites/${id}/`);
-          const content = JSON.parse(response.data.content);
+          const response = await axios.get(`/tests/test-cases/testsuites/${id}/`);
 
           const testsuiteBody = {
             name: response.data.name,
-            content: content, // Assume description, etc., are in content
+            content: response.data.content, // Assume description, etc., are in content
             id: response.data.id,
             testcases: response.data.testcases || [],
             availableTestcases: [] // Fetch available test cases if needed

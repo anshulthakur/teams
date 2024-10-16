@@ -8,6 +8,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'testcases', views.TestCaseViewSet)
 router.register(r'testruns', views.TestRunViewSet)
+router.register(r'testsuites', views.TestSuiteViewSet)
 router.register(r'testexecutions', views.TestExecutionViewSet)
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
@@ -19,6 +20,7 @@ urlpatterns = [
     path('test-cases/<int:id>/', views.test_case_detail, name='test_case_detail'),
     path('test-cases/<int:id>/export/<str:format_type>/', views.export_testcase, name='export_testcase'),
     path('test-cases/edit/<int:id>/', views.test_case_edit, name='test_case_edit'),
+    path('test-suites/', views.test_suite_list, name='test_suite_list'),
     path('test-suites/create/', views.test_suite_create, name='test_suite_create'),
     path('test-suites/<int:id>/', views.test_suite_detail, name='test_suite_detail'),
     path('test-suites/<int:id>/export/<str:format_type>/', views.export_testsuite, name='export_testsuite'),
