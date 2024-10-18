@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include('rest_framework.urls', namespace="rest_framework")),  # Ensure DRF URLs are included
     path('tests/', include("teams_core.urls")),
+    path('', include("teams_core.urls")),
 ]
 
 if settings.DEBUG:

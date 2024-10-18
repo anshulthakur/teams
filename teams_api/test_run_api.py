@@ -49,3 +49,27 @@ class TestRunAPI:
         if response.status_code != 204:
             raise APIError(f"Failed to delete test run: {response.content}")
         return
+
+    def create_test_case(self, data):
+        '''
+        Name and OID are mandatory for us
+        '''
+        url = f"{self.base_url}/tests/test-cases/testcases/"
+        if 'oid' not in data:
+            raise APIError(f"Cannot create test case without OID")
+        if 'name' not in data:
+            raise APIError(f"Cannot create test case without a name")
+        headers = self._get_auth_headers()  # Add JWT token to headers
+        
+        response = requests.post(url, json=data, headers=headers)
+        already_exists = False
+
+        if response.status_code != 201:
+            if response.status_code == 400:
+                errors = response.json().get('oid', [])
+                for error in errors:
+                    if 'already exist' in error:
+                        already_exists = True
+                if not already_exists:
+                    raise APIError(f"Failed to create test case: {response.content}")
+        return response.json()

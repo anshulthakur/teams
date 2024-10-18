@@ -14,17 +14,35 @@ const TestCaseEdit = () => {
         if (id) {
           // If there is an id, fetch the existing test case data
           const response = await axios.get(`/tests/test-cases/testcases/${id}/`);
-          const content = JSON.parse(response.data.content);
+          if (response.data.content){
+            const content = JSON.parse(response.data.content);
 
-          const testcaseBody = {
-            title: response.data.name,
-            oid: response.data.oid,
-            description: content.description,
-            id: response.data.id,
-            proceduralSteps: content.proceduralSteps,
-          };
-
-          setTestCaseData(testcaseBody);
+            const testcaseBody = {
+              title: response.data.name,
+              oid: response.data.oid,
+              description: content.description,
+              id: response.data.id,
+              proceduralSteps: content.proceduralSteps,
+            };
+            setTestCaseData(testcaseBody);
+          }
+          else{
+            const testcaseBody = {
+              title: response.data.name,
+              oid: response.data.oid,
+              description: '',
+              id: response.data.id,
+              proceduralSteps: {
+                Setup: [{ stepDescription: '', expectedOutput: '' }],
+                Start: [{ stepDescription: '', expectedOutput: '' }],
+                Measure: [{ stepDescription: '', expectedOutput: '' }],
+                Stop: [{ stepDescription: '', expectedOutput: '' }],
+                Shutdown: [{ stepDescription: '', expectedOutput: '' }],
+                Contingencies: [{ stepDescription: '', expectedOutput: '' }],
+              },
+            };
+            setTestCaseData(testcaseBody);
+          }
         }
       } catch (error) {
         console.error('Error fetching test case data:', error);

@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import SessionAuthentication
@@ -42,7 +43,10 @@ def test_case_detail(request, id):
     
     test_case = TestCase.objects.get(pk=id)
 
-    content = json.loads(test_case.content)
+    if test_case.content != None:
+        content = json.loads(test_case.content)
+    else:
+        content = ''
 
     return render(request, 'test_case/test_case_detail.html', {
         'testcase': test_case,
@@ -214,15 +218,34 @@ class TestRunViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def perform_create(self, serializer):
+        print('perform create')
         # Ensure atomic operation
         with transaction.atomic():
             # Before creating, validate uniqueness to avoid duplicates
             if TestRun.objects.filter(date=serializer.validated_data['date'], created_by=self.request.user).exists():
                 raise IntegrityError("A test run with this timestamp already exists for this user.")
-            
+
             # Save the TestRun instance
             serializer.save(created_by=self.request.user)
 
+    def perform_update(self, serializer):
+        # Ensure atomic operation
+        with transaction.atomic():
+            executions_data = self.request.data.get('executions', [])
+            
+            # Save the updated TestRun and TestExecutions
+            test_run = serializer.save()
+            for execution_data in executions_data:
+                TestExecution.objects.update_or_create(
+                    run=test_run,
+                    testcase_id=execution_data['testcase'],
+                    defaults={
+                        'result': execution_data['result'],
+                        'notes': execution_data.get('notes', ''),
+                        'duration': execution_data.get('duration', None)
+                    }
+                )
+        
 
 class TestExecutionViewSet(viewsets.ModelViewSet):
     queryset = TestExecution.objects.all()

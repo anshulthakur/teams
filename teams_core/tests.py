@@ -115,6 +115,17 @@ class Test_TestCases(SerializerTests):
         self.assertEqual(TestCase.objects.count(), 1)
         self.assertEqual(TestCase.objects.get().name, 'New Test Case')
 
+    def test_duplicate_test_case_not_allowed(self):
+        """
+        Test creating a new TestCase.
+        """
+        response = self.client.post(reverse('teams_core:testcase-list'), self.test_case_data, format='json')
+        response = self.client.post(reverse('teams_core:testcase-list'), self.test_case_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(TestCase.objects.count(), 1)
+        self.assertEqual(TestCase.objects.get().name, 'New Test Case')
+        print(response.json())
+
     def test_get_test_case(self):
         """
         Test fetching a TestCase.
