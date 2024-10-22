@@ -62,81 +62,104 @@ def generate_docx(testcase, testsuite=None):
     # Parse the JSON content
     content = json.loads(testcase.content)
 
-    # Create a 2-column table for Test Case Number and Name
-    info_table = doc.add_table(rows=2, cols=2)
-    info_table.autofit = False
-    info_table.columns[0].width = Inches(2)  # 2:8 width ratio
-    info_table.columns[1].width = Inches(8)
+    # Create an overall table with initial rows and columns
+    overall_table = doc.add_table(rows=2, cols=2)
+    overall_table.autofit = False
+    overall_table.columns[0].width = Inches(2)
+    overall_table.columns[1].width = Inches(8)
 
-    info_table.cell(0, 0).text = "Test Case Number:"
-    info_table.cell(0, 1).text = testcase.oid  # OID value
+    # Add data for Test Case Number and Name
+    current_row = 0
+    overall_table.cell(0, 0).text = "Test Case Number:"
+    overall_table.cell(0, 1).text = "<OID>"
+    current_row += 1
+    overall_table.cell(1, 0).text = "Test Case Name:"
+    overall_table.cell(1, 1).text = "Example Test Case"
 
-    info_table.cell(1, 0).text = "Test Case Name:"
-    info_table.cell(1, 1).text = testcase.name
+    # Merge cells for Procedural Steps header
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(2, 0).merge(overall_table.cell(2, 1))
+    overall_table.cell(2, 0).text = "Procedural Steps"
 
-    # Add a heading for Procedural Steps
-    doc.add_heading("Procedural Steps", level=2)
-
-    # Create a 2-column table for Procedural Steps
-    procedural_table = doc.add_table(rows=1, cols=2)
-    procedural_table.autofit = False
-    procedural_table.columns[0].width = Inches(2)  # 2:8 width ratio
-    procedural_table.columns[1].width = Inches(8)
-
-    # Define the headers
-    procedural_table.cell(0, 0).text = "Step"
-    procedural_table.cell(0, 1).text = "Description"
+    # Add headers for Procedural Steps
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(3, 0).text = "Step"
+    overall_table.cell(3, 1).text = "Description"
 
     # Populate the procedural steps
     for step, details in content['proceduralSteps'].items():
         for detail in details:
-            row_cells = procedural_table.add_row().cells
-            row_cells[0].text = step  # Step description
-            row_cells[1].text = detail['stepDescription']  # Input description
+            current_row += 1
+            overall_table.add_row()
+            overall_table.cell(current_row, 0).text = step
+            overall_table.cell(current_row, 1).text = detail['stepDescription']
 
-    # Add a single column for Environment/Setup
-    doc.add_heading("Environment/Setup", level=2)
-    doc.add_paragraph("Specify environment/setup details here...")  # Placeholder
 
-    # Create a 2-column table for Hardware, Software, and Other
-    setup_table = doc.add_table(rows=1, cols=2)
-    setup_table.autofit = False
-    setup_table.columns[0].width = Inches(2)  # 2:8 width ratio
-    setup_table.columns[1].width = Inches(8)
+    # Merge cells for Environment/Setup header
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).merge(overall_table.cell(current_row, 1))
+    overall_table.cell(current_row, 0).text = "Environment/Setup"
 
-    setup_table.cell(0, 0).text = "Hardware:"
-    setup_table.cell(0, 1).text = "Specify hardware here..."  # Placeholder
+    # Add placeholder text for Environment/Setup
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).merge(overall_table.cell(current_row, 1))
+    overall_table.cell(current_row, 0).text = "Specify environment/setup details here..."
 
-    setup_table.add_row().cells[0].text = "Software:"
-    setup_table.add_row().cells[1].text = "Specify software here..."  # Placeholder
+    # Add Hardware, Software, and Other details
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).text = "Hardware"
+    overall_table.cell(current_row, 1).text = "Specify hardware here..."
+    
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).text = "Software"
+    overall_table.cell(current_row, 1).text = "Specify software here..."
+    
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).text = "Other"
+    overall_table.cell(current_row, 1).text = "Specify other details here..."
 
-    # Add a single column for Intercase dependencies
-    doc.add_heading("Intercase Dependencies", level=2)
-    doc.add_paragraph("Specify intercase dependencies here...")  # Placeholder
+    # Merge cells for Intercase Dependencies header
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).merge(overall_table.cell(current_row, 1))
+    overall_table.cell(current_row, 0).text = "Intercase Dependencies"
 
-    # Add a single column for Specifications
-    doc.add_heading("Specifications", level=2)
-    doc.add_paragraph("Specify specifications here...")  # Placeholder
 
-    # Create a 3-column table for Input, Expected Output, and Actual Output
-    spec_table = doc.add_table(rows=1, cols=3)
-    spec_table.autofit = False
-    spec_table.columns[0].width = Inches(4)  # 3:3:3 ratio
-    spec_table.columns[1].width = Inches(4)
-    spec_table.columns[2].width = Inches(4)
+    # Add placeholder text for Intercase Dependencies
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).merge(overall_table.cell(current_row, 1))
+    overall_table.cell(current_row, 0).text = "Specify intercase dependencies here..."
 
-    # Define the headers
-    spec_table.cell(0, 0).text = "Input"
-    spec_table.cell(0, 1).text = "Expected Output"
-    spec_table.cell(0, 2).text = "Actual Output"
+    # Merge cells for Specifications header
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).merge(overall_table.cell(current_row, 1))
+    overall_table.cell(current_row, 0).text = "Specifications"
+
+    # Add headers for Specifications
+    current_row += 1
+    overall_table.add_row()
+    overall_table.cell(current_row, 0).text = "Input"
+    # overall_table.cell(current_row, 1).split(1, 3)
+    overall_table.cell(current_row, 1).text = "Expected Output"
+    # overall_table.cell(current_row, 2).text = "Actual Output"
+    # Example specs (replace this with your own)
 
     # Populate the input and expected output based on procedural steps
     for step, details in content['proceduralSteps'].items():
         for detail in details:
-            row_cells = spec_table.add_row().cells
+            row_cells = overall_table.add_row().cells
             row_cells[0].text = detail['stepDescription']  # Input description
             row_cells[1].text = detail['expectedOutput']  # Expected output
-            row_cells[2].text = ""  # Leave Actual Output blank
+            # row_cells[2].text = ""  # Leave Actual Output blank
 
     doc.save(docx_path)
     return [docx_filename, docx_path]
