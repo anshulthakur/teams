@@ -19,6 +19,15 @@ class TestCase(models.Model):
     suites = models.ManyToManyField(TestSuite, blank=True)
     version = models.CharField(max_length=20, default="1.0")  # Optional, for version control
 
+    def total_runs(self):
+        return TestExecution.objects.filter(testcase=self, run__published=True).exclude(result='SKIPPED').count()
+
+    def successful_runs(self):
+        return TestExecution.objects.filter(testcase=self, run__published=True, result='PASS').count()
+
+    def __str__(self):
+        return self.name
+    
 class TestRun(models.Model):
     date = models.DateTimeField(default=timezone.now, null=False)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)

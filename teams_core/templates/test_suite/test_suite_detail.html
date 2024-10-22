@@ -26,10 +26,10 @@
                 </tr>
             </thead>
             <tbody>
-                {% for stats in test_case_stats %}
+                {% for testcase in testcases %}
                 <tr>
-                    <td><a href="{% url 'teams_core:test_case_detail' stats.testcase.id %}">{{ stats.testcase.name }}</a></td>
-                    <td>{{ stats.successful_runs }}/{{ stats.total_runs }}</td>
+                    <td><a href="{% url 'teams_core:test_case_detail' testcase.id %}">{{ testcase.name }}</a></td>
+                    <td>{{ testcase.successful_runs }}/{{ testcase.total_runs }}</td>
                 </tr>
                 {% empty %}
                 <tr>

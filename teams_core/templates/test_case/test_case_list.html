@@ -23,6 +23,7 @@
                     <th>Name</th>
                     <th>Version</th>
                     <th>Last Modified</th>
+                    <th>Statistics (Successful/Total Runs)</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -32,6 +33,7 @@
                     <td><a href="{% url 'teams_core:test_case_detail' test_case.id %}">{{ test_case.name }}</a></td>
                     <td>{{ test_case.version }}</td>
                     <td>{{ test_case.last_modified|date:"M d, Y" }}</td>
+                    <td>{{ test_case.successful_runs }}/{{ test_case.total_runs }}</td>
                     <td>
                         <a href="{% url 'teams_core:test_case_edit' test_case.id %}" class="btn btn-secondary">Edit</a>
                         <button class="btn btn-danger"

@@ -81,21 +81,21 @@ def test_suite_detail(request, id):
     # Get all test cases in the test suite
     test_cases = testsuite.testcase_set.all()
 
-    # Calculate testing statistics for each test case
-    test_case_stats = []
-    for testcase in test_cases:
-        total_runs = TestExecution.objects.filter(testcase=testcase).count()
-        successful_runs = TestExecution.objects.filter(testcase=testcase, result='PASS').count()
+    # # Calculate testing statistics for each test case
+    # test_case_stats = []
+    # for testcase in test_cases:
+    #     total_runs = TestExecution.objects.filter(testcase=testcase).count()
+    #     successful_runs = TestExecution.objects.filter(testcase=testcase, result='PASS').count()
 
-        test_case_stats.append({
-            'testcase': testcase,
-            'total_runs': total_runs,
-            'successful_runs': successful_runs
-        })
+    #     test_case_stats.append({
+    #         'testcase': testcase,
+    #         'total_runs': total_runs,
+    #         'successful_runs': successful_runs
+    #     })
 
     return render(request, 'test_suite/test_suite_detail.html', {
         'testsuite': testsuite,
-        'test_case_stats': test_case_stats
+        'testcases': test_cases
     })
 
 @login_required
