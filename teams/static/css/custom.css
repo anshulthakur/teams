@@ -26,4 +26,7 @@
   .image-grid img:hover {
     transform: scale(1.05);
   }
-  
+
+  .notes-column {
+    max-width: 15rem;
+  }

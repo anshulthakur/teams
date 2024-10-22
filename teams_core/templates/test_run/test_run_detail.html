@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Test Run Detail{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -28,7 +33,7 @@
                     <td>{{ execution.result }}</td>
                     <td>{{ execution.duration }}</td>
                     <td>{{ execution.date|date:"M d, Y H:i" }}</td>
-                    <td>{{ execution.notes }}</td>
+                    <td class="notes-column text-truncate">{{ execution.notes }}</td>
                 </tr>
                 {% empty %}
                 <tr>
