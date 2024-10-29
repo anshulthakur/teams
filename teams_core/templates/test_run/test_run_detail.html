@@ -29,7 +29,10 @@
             <tbody>
                 {% for execution in test_executions %}
                 <tr>
-                    <td>{{ execution.testcase.name }}</td>
+                    <td><span class="d-block">
+                            <a href="{% url 'teams_core:test_case_detail' execution.testcase.id %}">{{ execution.testcase.name }}</a>
+                        </span>
+                        <span class="d-block">{{ execution.testcase.oid }}</span></td>
                     <td>{{ execution.result }}</td>
                     <td>{{ execution.duration }}</td>
                     <td>{{ execution.date|date:"M d, Y H:i" }}</td>
