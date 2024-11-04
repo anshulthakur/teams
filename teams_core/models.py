@@ -1,6 +1,7 @@
 from django.db import models, IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import datetime
 
 class TestSuite(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
@@ -39,6 +40,9 @@ class TestRun(models.Model):
 
     class Meta:
         unique_together = ('date', 'created_by') 
+    
+    def __str__(self):
+        return f'Test Run on {self.date}'
 
 class TestExecution(models.Model):
     TEST_RESULT_CHOICES = [
@@ -54,3 +58,6 @@ class TestExecution(models.Model):
     result = models.CharField(choices=TEST_RESULT_CHOICES, max_length=10)
     run = models.ForeignKey(TestRun, null=False, blank=False, on_delete=models.CASCADE)
     duration = models.DurationField(blank=True, null=True)  # Track how long the test took
+
+    def __str__(self):
+        return f'TE on {self.date} for {self.testcase}'
