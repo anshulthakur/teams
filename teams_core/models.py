@@ -9,6 +9,9 @@ class TestSuite(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
 
+    def __str__(self):
+        return self.name
+
 class TestCase(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
     oid = models.CharField(max_length=1024, blank=True, null=True, unique=True)
