@@ -44,7 +44,10 @@ def test_case_detail(request, id):
     test_case = TestCase.objects.get(pk=id)
 
     if test_case.content != None:
-        content = json.loads(test_case.content)
+        if len(test_case.content)>0:
+            content = json.loads(test_case.content)
+        else:
+            content = ''
     else:
         content = ''
 
