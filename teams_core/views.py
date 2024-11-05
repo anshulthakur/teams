@@ -29,7 +29,7 @@ from .export import generate_docx, generate_pdf
 
 def test_case_list(request):
     query = request.GET.get('q')  # Get search query from URL
-    test_cases = TestCase.objects.all()
+    test_cases = TestCase.objects.all().order_by('last_modified')
 
     # Filter by search query if provided
     if query:
