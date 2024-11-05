@@ -43,6 +43,12 @@ class TestRun(models.Model):
     
     def __str__(self):
         return f'Test Run on {self.date}'
+    
+    def total_tests_executed(self):
+        return TestExecution.objects.filter(run=self).exclude(result='SKIPPED').count()
+
+    def successful_tests(self):
+        return TestExecution.objects.filter(run=self, result='PASS').count()
 
 class TestExecution(models.Model):
     TEST_RESULT_CHOICES = [
