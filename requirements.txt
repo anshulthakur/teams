@@ -4,7 +4,7 @@ django-filter==24.3
 djangorestframework==3.15.2
 Markdown==3.7
 sqlparse==0.5.1
-django-htmx==1.19.0
+django-htmx==1.21.0
 djangorestframework-simplejwt==5.3.1
 python-docx==1.1.2
 pypandoc==1.14

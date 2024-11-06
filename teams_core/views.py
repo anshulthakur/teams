@@ -32,13 +32,20 @@ from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestEx
 from .export import generate_docx, generate_pdf
 
 def test_case_list(request):
-    query = request.GET.get('q')  # Get search query from URL
+    query = request.GET.get('name')  # Get search query from URL
     test_cases = TestCase.objects.all().order_by('-last_modified')
 
-    # Filter by search query if provided
+    # Filter by search query if provided, matching name and oid fields
     if query:
-        test_cases = test_cases.filter(name__icontains=query)
+        test_cases = test_cases.filter(name__icontains=query) | test_cases.filter(oid__icontains=query)
 
+    # If request is from HTMX, return only the filtered table HTML
+    if request.headers.get('HX-Request') == 'true':
+        return render(request, 'test_case/_test_case_table.html', {
+            'test_cases': test_cases
+        })
+
+    # Otherwise, render the full page template
     return render(request, 'test_case/test_case_list.html', {
         'test_cases': test_cases
     })
@@ -228,7 +235,7 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]
-    
+
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ['name']  # Supports partial matching on these fields
 
