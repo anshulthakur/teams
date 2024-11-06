@@ -26,6 +26,7 @@ urlpatterns = [
     path('test-suites/<int:id>/export/<str:format_type>/', views.export_testsuite, name='export_testsuite'),
     path('test-suites/edit/<int:id>/', views.test_suite_edit, name='test_suite_edit'),
     path('test-runs/', views.test_run_list, name='test_run_list'),
+    path('test-runs/<int:user_id>/', views.test_run_list, name='user_test_run_list'),
     path('test-runs/<int:id>/', views.test_run_detail, name='test_run_detail'),
     path('test-runs/create/', views.test_run_create, name='test_run_create'),
     path('api/upload-image/', views.ImageUploadView.as_view(), name='upload-image'),

@@ -3771,8 +3771,6 @@ var htmx = (function() {
     const attributeValue = getAttributeValue(elt, attr)
     if (attributeValue) {
       let str = attributeValue.trim()
-      console.log('Anshul');
-      console.log(str);
       let evaluateValue = evalAsDefault
       if (str === 'unset') {
         return null

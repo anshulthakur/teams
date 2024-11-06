@@ -45,6 +45,11 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'teams_core:test_run_list' %}">Test Runs</a>
                     </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'teams_core:user_test_run_list' user.id %}">My Test Runs</a>
+                        </li>
+                    {% endif %}
                     <!-- Add more links for other sections as needed -->
                     {% endblock %}
                 </ul>

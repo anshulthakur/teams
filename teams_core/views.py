@@ -126,8 +126,21 @@ def test_suite_edit(request, id):
     return render(request, 'test_suite/test_suite_form.html', {'testsuite': test_suite})
 
 
-def test_run_list(request):
-    test_runs = TestRun.objects.all().order_by('-date')
+def test_run_list(request, user_id=None):
+    # Get all published test runs by default
+    test_runs = TestRun.objects.filter(published=True).order_by('-date')
+
+    # Filter by user if `user_id` is provided
+    if user_id:
+        # Check if the request is made by the same user whose runs are being requested
+        requested_user = get_object_or_404(User, pk=user_id)
+        if request.user.is_authenticated and request.user.id == requested_user.id:
+            # Show both published and private runs for the logged-in user
+            test_runs = TestRun.objects.filter(created_by=requested_user).order_by('-date')
+        else:
+            # For other users, show only published runs of the specified user
+            test_runs = TestRun.objects.filter(created_by=requested_user, published=True).order_by('-date')
+
     return render(request, 'test_run/test_run_list.html', {
         'test_runs': test_runs
     })
