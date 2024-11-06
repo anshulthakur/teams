@@ -51,9 +51,13 @@ def test_case_detail(request, id):
     else:
         content = ''
 
+    # Fetch execution history for the test case
+    test_executions = TestExecution.objects.filter(testcase=test_case).order_by('-date')
+    
     return render(request, 'test_case/test_case_detail.html', {
         'testcase': test_case,
-        'content': content
+        'content': content,
+        'test_executions': test_executions
     })
 
 @login_required

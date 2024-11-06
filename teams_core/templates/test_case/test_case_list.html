@@ -16,7 +16,7 @@
     </div>
 
     <!-- Test Case List -->
-    <div id="test-case-list" class="mt-4">
+    <div id="test-case-list" class="mt-5">
         <table class="table table-bordered table-hover">
             <thead>
                 <tr>
@@ -30,7 +30,9 @@
             <tbody>
                 {% for test_case in test_cases %}
                 <tr id="test-case-{{ test_case.id }}">
-                    <td><a href="{% url 'teams_core:test_case_detail' test_case.id %}">{{ test_case.name }}</a></td>
+                    <td><span class="d-block"><a href="{% url 'teams_core:test_case_detail' test_case.id %}">{{ test_case.name }}</a></span>
+                        <span class="d-block">{{ test_case.oid }}</span>
+                    </td>
                     <td>{{ test_case.version }}</td>
                     <td>{{ test_case.last_modified|date:"M d, Y" }}</td>
                     <td>{{ test_case.successful_runs }}/{{ test_case.total_runs }}</td>
@@ -46,7 +48,7 @@
                 
                 {% empty %}
                 <tr>
-                    <td colspan="4">No test cases found.</td>
+                    <td colspan="5">No test cases found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

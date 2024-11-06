@@ -60,7 +60,7 @@ def generate_docx(testcase, testsuite=None):
     doc.add_heading("3.1 Test Case: " + testcase.name, level=3)
 
     # Parse the JSON content
-    content = json.loads(testcase.content)
+    content = json.loads(testcase.content) if testcase.content is not None else {'proceduralSteps': {}}
 
     # Create an overall table with initial rows and columns
     overall_table = doc.add_table(rows=2, cols=2)

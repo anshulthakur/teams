@@ -1,15 +1,20 @@
 {% extends 'base.html' %}
 
-{% block title %}Test Suite Detail{% endblock %}
+{% block title %}{{ testsuite.name }}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
+    <div class="export-buttons mt-3">
+        <a href="{% url 'teams_core:test_suite_edit' testsuite.id %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'teams_core:export_testsuite' testsuite.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
+        {% comment %} <a href="{% url 'teams_core:export_testsuite' testsuite.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
+    </div>
     <h1>{{ testsuite.name }}</h1>
     <h2>ID: {{ testsuite.id }}</h2>
     <h2>Created on: {{ testsuite.created_on|date:"M d, Y H:i" }}</h2>
     <h2>Last modified: {{ testsuite.last_modified|date:"M d, Y H:i" }}</h2>
     <h2>Created By: {{ testsuite.author.username }}</h2>
-
+    
     <section>
         <h3>Description</h3>
         <p>{{ testsuite.content }}</p>
@@ -17,7 +22,7 @@
 
     <!-- Table of Test Cases included in the test suite -->
     <section>
-        <h3>Test Cases</h3>
+        <h3>Test Cases ({{ testcases.count }})</h3>
         <table class="table table-bordered table-hover">
             <thead>
                 <tr>
@@ -28,7 +33,10 @@
             <tbody>
                 {% for testcase in testcases %}
                 <tr>
-                    <td><a href="{% url 'teams_core:test_case_detail' testcase.id %}">{{ testcase.name }}</a></td>
+                    <td>
+                        <span class="d-block"><a href="{% url 'teams_core:test_case_detail' testcase.id %}">{{ testcase.name }}</a></span>
+                        <span class="d-block">{{ testcase.oid }}</span>
+                    </td>
                     <td>{{ testcase.successful_runs }}/{{ testcase.total_runs }}</td>
                 </tr>
                 {% empty %}
