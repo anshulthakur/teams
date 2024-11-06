@@ -71,7 +71,6 @@ class TestExecutionSerializer(serializers.ModelSerializer):
         }
 
 
-
 class TestRunSerializer(serializers.ModelSerializer):
     executions = TestExecutionSerializer(many=True, required=False)  # Enable write access
     created_by = serializers.ReadOnlyField(source='created_by.username')

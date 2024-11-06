@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
+from django.db.models import Q
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -17,6 +18,9 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
+from rest_framework import filters
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import SessionAuthentication
@@ -203,6 +207,17 @@ class TestCaseViewSet(viewsets.ModelViewSet):
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['name', 'oid']  # Supports partial matching on these fields
+
+    def get_queryset(self):
+        queryset = self.queryset
+        search = self.request.query_params.get('search')
+        
+        if search:
+            queryset = queryset.filter(Q(name__icontains=search.strip()) | Q(oid__icontains=search.strip()))
+        return queryset
+    
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -213,7 +228,18 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]
+    
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['name']  # Supports partial matching on these fields
 
+    def get_queryset(self):
+        queryset = self.queryset
+        search = self.request.query_params.get('search')
+        
+        if search:
+            queryset = queryset.filter(name__icontains=search.strip())
+        return queryset
+    
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
