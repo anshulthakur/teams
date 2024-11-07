@@ -148,6 +148,21 @@ def test_run_list(request, user_id=None):
 def test_run_detail(request, id):
     test_run = TestRun.objects.get(pk=id)
     test_executions = test_run.testexecution_set.all()  # Get all executions for this run
+
+    # Get search query for TestExecutions by TestCase name or oid
+    query = request.GET.get('q')
+    if query:
+        test_executions = test_executions.filter(
+            Q(testcase__name__icontains=query) | Q(testcase__oid__icontains=query)
+        )
+
+    # If the request is from HTMX, return only the filtered rows
+    if request.headers.get('HX-Request') == 'true':
+        return render(request, 'test_run/_test_execution_table.html', {
+            'test_executions': test_executions
+        })
+
+    # Otherwise, render the full page template
     return render(request, 'test_run/test_run_detail.html', {
         'test_run': test_run,
         'test_executions': test_executions

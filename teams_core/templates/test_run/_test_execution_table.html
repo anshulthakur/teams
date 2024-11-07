@@ -1,0 +1,42 @@
+
+{% for execution in test_executions %}
+<tr>
+    <td><span class="d-block">
+            <a href="{% url 'teams_core:test_case_detail' execution.testcase.id %}">{{ execution.testcase.name }}</a>
+        </span>
+        <span class="d-block">{{ execution.testcase.oid }}</span></td>
+    <td class="result-column {% if execution.result == 'PASS' %}table-success{% elif execution.result == 'FAIL' %}table-danger{% endif %}">
+        {{ execution.result }}
+    </td>
+    <td>{{ execution.duration }}</td>
+    <td>{{ execution.date|date:"M d, Y H:i" }}</td>
+    <td class="notes-column text-truncate" 
+        data-note="{{ execution.notes }}">
+        {{ execution.notes|truncatechars:30 }}
+        {% if execution.notes %}
+            <a href="#"
+            class="ms-2"
+            onclick="showFullNotes(this)">
+            <i class="bi bi-plus-circle"></i> <!-- Plus icon -->
+            </a>
+        {% endif %}
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5">No executions found for this run.</td>
+</tr>
+{% endfor %}
+
+{% block extra_scripts %}
+<script defer>
+    function showFullNotes(element) {
+        const fullNote = element.closest('.notes-column').getAttribute('data-note');
+        document.getElementById('notes-modal-content').innerHTML = `<pre>${fullNote}</pre>`;
+        
+        // Show the modal
+        const notesModal = new bootstrap.Modal(document.getElementById('notesModal'));
+        notesModal.show();
+    }
+</script>
+{% endblock %}
