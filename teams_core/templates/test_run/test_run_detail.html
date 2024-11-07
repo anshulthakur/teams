@@ -23,7 +23,7 @@
                     hx-get="{% url 'teams_core:test_run_detail' test_run.id %}" 
                     hx-trigger="keyup changed delay:500ms" 
                     hx-target="#test-execution-table-body" 
-                    hx-vals="{q: this.value}">
+                    hx-vals='{"name": ""}' oninput="this.setAttribute('hx-vals', JSON.stringify({name: this.value}))">
             </div>
         </div>
         <table class="table table-bordered table-hover">

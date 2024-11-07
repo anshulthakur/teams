@@ -150,7 +150,7 @@ def test_run_detail(request, id):
     test_executions = test_run.testexecution_set.all()  # Get all executions for this run
 
     # Get search query for TestExecutions by TestCase name or oid
-    query = request.GET.get('q')
+    query = request.GET.get('name')
     if query:
         test_executions = test_executions.filter(
             Q(testcase__name__icontains=query) | Q(testcase__oid__icontains=query)
