@@ -24,3 +24,11 @@ automatically using the REST API provided. Right now, I've integrated this API w
 deleting a test case/suite/run. `React` is for larger use cases, such as test case form rendering, DOM manipulation.
 - Automation API uses JWT authentication to avoid CSRF problem. For the WebInterface, session-cookie based authentication 
 (and CSRF validation) are used.
+- For single-user-signon, we are using OpenLDAP currently. In order to run properly, the development libraries must be present. 
+On a Debian based system, the same may be installed as
+
+```
+apt-get install build-essential python3-dev \
+    libldap2-dev libsasl2-dev slapd ldap-utils tox \
+    lcov valgrind
+```
