@@ -168,7 +168,10 @@ def generate_docx(testcase=None, testsuite=None):
     # Introduction Section
     doc.add_heading("1. Introduction", level=2)
     doc.add_heading("1.1 Purpose", level=3)
-    doc.add_paragraph("This document describes the functional tests for the system...")  # Customize as needed
+    if testsuite is not None:
+        doc.add_paragraph(testsuite.content)  # Customize as needed
+    else:
+        doc.add_paragraph("The tests cover the following aspects...")  # Customize as needed
     doc.add_heading("1.2 Scope", level=3)
     doc.add_paragraph("The tests cover the following aspects...")  # Customize as needed
     doc.add_heading("1.3 Outline", level=3)

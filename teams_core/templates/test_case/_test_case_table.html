@@ -1,8 +1,40 @@
 <table class="table table-bordered table-hover">
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Last Modified</th>
+            <th class="position-relative">
+                <span>Name</span>
+                <span class="position-absolute top-0 end-0 d-flex flex-column">
+                    <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
+                       hx-vals='{"sort": {% if current_sort == "name" %}"name_asc"{% else %}"name"{% endif %}}'
+                       hx-target="#test-case-list"
+                       hx-push-url="true">
+                        <i class="bi bi-caret-up-fill {% if current_sort == 'name' %}text-primary{% endif %}"></i>
+                    </a>
+                    <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
+                       hx-vals='{"sort": {% if current_sort == "name_asc" %}"name"{% else %}"name_asc"{% endif %}}'
+                       hx-target="#test-case-list"
+                       hx-push-url="true">
+                        <i class="bi bi-caret-down-fill {% if current_sort == 'name_asc' %}text-primary{% endif %}"></i>
+                    </a>
+                </span>
+            </th>
+            <th class="position-relative">
+                <span>Last Modified</span>
+                <span class="position-absolute top-0 end-0 d-flex flex-column">
+                    <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
+                       hx-vals='{"sort": {% if current_sort == "modify" %}"modify_asc"{% else %}"modify"{% endif %}}'
+                       hx-target="#test-case-list"
+                       hx-push-url="true">
+                        <i class="bi bi-caret-up-fill {% if current_sort == 'modify' %}text-primary{% endif %}"></i>
+                    </a>
+                    <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
+                       hx-vals='{"sort": {% if current_sort == "modify_asc" %}"modify"{% else %}"modify_asc"{% endif %}}'
+                       hx-target="#test-case-list"
+                       hx-push-url="true">
+                        <i class="bi bi-caret-down-fill {% if current_sort == 'modify_asc' %}text-primary{% endif %}"></i>
+                    </a>
+                </span>
+            </th>
             <th>Actions</th>
         </tr>
     </thead>

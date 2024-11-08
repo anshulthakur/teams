@@ -32,22 +32,39 @@ from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestEx
 from .export import generate_docx, generate_pdf
 
 def test_case_list(request):
-    query = request.GET.get('name')  # Get search query from URL
-    test_cases = TestCase.objects.all().order_by('-last_modified')
+    query = request.GET.get('name')
+    sorting = request.GET.get('sort', 'modify')  # Default to sorting by last modified
 
-    # Filter by search query if provided, matching name and oid fields
+    # Determine ordering
+    ordering = '-last_modified'
+    if sorting == 'modify_asc':
+        ordering = 'last_modified'
+    elif sorting == 'name_asc':
+        ordering = 'name'
+    elif sorting == 'name':
+        ordering = '-name'
+    elif sorting == 'oid_asc':
+        ordering = 'oid'
+    elif sorting == 'oid':
+        ordering = '-oid'
+        
+    test_cases = TestCase.objects.all().order_by(ordering)
+
+    # Filter by search query if provided
     if query:
-        test_cases = test_cases.filter(name__icontains=query) | test_cases.filter(oid__icontains=query)
+        test_cases = test_cases.filter(Q(name__icontains=query) | Q(oid__icontains=query))
 
-    # If request is from HTMX, return only the filtered table HTML
+    # Render only the table if the request is from HTMX
     if request.headers.get('HX-Request') == 'true':
         return render(request, 'test_case/_test_case_table.html', {
-            'test_cases': test_cases
+            'test_cases': test_cases,
+            'current_sort': sorting
         })
 
-    # Otherwise, render the full page template
+    # Render the full page for non-HTMX requests
     return render(request, 'test_case/test_case_list.html', {
-        'test_cases': test_cases
+        'test_cases': test_cases,
+        'current_sort': sorting
     })
 
 def test_case_detail(request, id):
