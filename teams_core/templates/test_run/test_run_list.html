@@ -36,6 +36,25 @@
                     <td>
                         <a href="{% url 'teams_core:test_run_detail' test_run.id %}" class="btn btn-info">View</a>
                         <!-- <a href="#" class="btn btn-secondary">Edit</a> -->
+                        {% if request.user == test_run.created_by or request.user.is_staff %}
+                            {% if test_run.published %}
+                                <button class="btn btn-warning"
+                                    hx-patch="{% url 'teams_core:test_run_detail' test_run.id %}"
+                                    hx-vals='{"published": false}'
+                                    hx-swap="none"
+                                    hx-trigger="click">
+                                    Unpublish
+                                </button>
+                            {% else %}
+                                <button class="btn btn-success"
+                                    hx-patch="{% url 'teams_core:test_run_detail' test_run.id %}"
+                                    hx-vals='{"published": true}'
+                                    hx-swap="none"
+                                    hx-trigger="click">
+                                    Publish
+                                </button>
+                            {% endif %}
+                        {% endif %}
                         <button class="btn btn-danger"
                             hx-delete="{% url 'teams_core:testrun-detail' test_run.id %}"
                             hx-confirm="Are you sure you want to delete this test run?">

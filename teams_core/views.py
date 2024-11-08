@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User, Group
 from django.core.files.storage import default_storage
 from django.contrib.auth.decorators import login_required
@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.db.models import Q
+from django.views.decorators.http import require_http_methods
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -162,8 +163,19 @@ def test_run_list(request, user_id=None):
         'test_runs': test_runs
     })
 
+@require_http_methods(["GET", "PATCH"])
 def test_run_detail(request, id):
-    test_run = TestRun.objects.get(pk=id)
+    test_run = get_object_or_404(TestRun, id=id)
+    if request.method == "PATCH":
+        # Ensure the user has permission to publish/unpublish
+        if request.user == test_run.created_by or request.user.is_staff:
+            publish = request.POST.get('published') == 'true'
+            test_run.published = publish
+            test_run.save()
+
+        # Redirect back to the detail page to refresh the view
+        return redirect('teams_core:test_run_list')  # Reloads the test run list page
+    
     test_executions = test_run.testexecution_set.all()  # Get all executions for this run
 
     # Get search query for TestExecutions by TestCase name or oid
