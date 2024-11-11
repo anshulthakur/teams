@@ -68,20 +68,23 @@
                                 {% endif %}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px;">
-                                <li class="dropdown-header">Notifications</li>
+                                <li class="dropdown-header"><a class="link-underline link-underline-opacity-0 text-decoration-none" href="{% url 'teams_core:all_notifications' %}">Notifications</a></li>
                                 {% if user.notifications.unread %}
                                     {% for notification in user.notifications.unread %}
-                                        <li>
-                                            <a class="dropdown-item" href="{{ notification.target.get_absolute_url }}">
+                                        <li class="d-flex align-items-center">
+                                            <input type="checkbox" 
+                                                   class="form-check-input me-2" 
+                                                   hx-get="{% url 'teams_core:mark_notification_as_read' notification.id %}" 
+                                                   hx-target="#notification-item-{{ notification.id }}" 
+                                                   hx-swap="outerHTML">
+                                            <a class="dropdown-item" href="{{ notification.target.get_absolute_url }}" id="notification-item-{{ notification.id }}">
                                                 {{ notification.verb }}
                                             </a>
                                         </li>
                                     {% endfor %}
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-center" href="{% url 'teams_core:all_notifications' %}">View All Notifications</a></li>
                                 {% else %}
                                     <li><span class="dropdown-item text-muted">No new notifications</span></li>
-                                    <li><a class="dropdown-item text-center" href="{% url 'teams_core:all_notifications' %}">View All Notifications</a></li>
                                 {% endif %}
                             </ul>
                         </li>

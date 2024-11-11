@@ -414,8 +414,11 @@ def export_testsuite(request, id, format_type='docx'):
     
 @login_required
 def mark_notifications_read(request):
+    """Mark all unread notifications as read."""
     request.user.notifications.unread().mark_all_as_read()
-    return redirect('notifications:all')  # Adjust the redirect URL as needed
+    if request.headers.get('HX-Request'):
+        return HttpResponse('<ul class="list-group mb-4"><li class="list-group-item text-muted">No unread notifications.</li></ul>')
+    return redirect('teams_core:all_notifications')
 
 @login_required
 def all_notifications(request):
@@ -440,13 +443,13 @@ def mark_notification_as_read(request, notification_id):
         )
     else:
         # Otherwise, redirect to the notifications page
-        return redirect('notifications:all_notifications')
+        return redirect('teams_core:all_notifications')
 
 @login_required
 def delete_notification(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
     notification.delete()
-    return redirect('notifications:all_notifications')
+    return redirect('teams_core:all_notifications')
 
 
 @login_required
