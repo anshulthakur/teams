@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-
+import notifications.urls
 from . import views
 
 router = DefaultRouter()
@@ -32,5 +32,12 @@ urlpatterns = [
     path('api/upload-image/', views.ImageUploadView.as_view(), name='upload-image'),
     path('api/list-images/', views.ImageListView.as_view(), name='list-images'),
     path('test-cases/', include(router.urls)),
+    path('inbox/notifications/', include(notifications.urls, namespace='notifications')),
+    path('notifications/', views.all_notifications, name='all_notifications'),
+    path('notifications/mark-as-read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
+    path('notifications/mark-all-read/', views.mark_notifications_read, name='mark_notifications_read'),
+    path('<str:object_type>/<int:object_id>/subscribe/<str:event_type>/', views.subscribe_to_event, name='subscribe_to_event'),
+    path('<str:object_type>/<int:object_id>/unsubscribe/<str:event_type>/', views.unsubscribe_from_event, name='unsubscribe_from_event'),
     path('', views.test_case_list, name='test_case_list'),
 ]

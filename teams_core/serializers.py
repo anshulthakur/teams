@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import TestRun, TestExecution, TestCase, TestSuite
 from django.contrib.auth.models import Group, User
+from notifications.signals import notify
+from teams_core.utils import *
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -96,7 +98,10 @@ class TestRunSerializer(serializers.ModelSerializer):
         executions_data = validated_data.pop('executions', [])
         test_run = TestRun.objects.create(**validated_data)
         for execution_data in executions_data:
-            TestExecution.objects.create(run=test_run, **execution_data)
+            execution = TestExecution.objects.create(run=test_run, **execution_data)
+            # Send notification if the test case failed
+            if execution.result == 'FAIL':
+                self._send_failure_notification(execution)
         return test_run
 
     def update(self, instance, validated_data):
@@ -108,7 +113,7 @@ class TestRunSerializer(serializers.ModelSerializer):
         if executions_data is not None:
             # Update or create TestExecution instances
             for execution_data in executions_data:
-                TestExecution.objects.update_or_create(
+                execution, created = TestExecution.objects.update_or_create(
                     run=instance,
                     testcase=execution_data['testcase'],
                     defaults={
@@ -117,6 +122,9 @@ class TestRunSerializer(serializers.ModelSerializer):
                         'duration': execution_data.get('duration', None)
                     }
                 )
+                # Send notification if the test case failed and is newly created or updated to fail
+                if execution.result == 'FAIL' and (created or execution_data['result'] == 'FAIL'):
+                    self._send_failure_notification(execution)
         return instance  # Return the instance to be processed by DRF
     
     def to_representation(self, instance):
@@ -124,3 +132,34 @@ class TestRunSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)  # Call the parent method
         representation['executions'] = TestExecutionSerializer(instance.testexecution_set.all(), many=True).data
         return representation  # Return the modified representation
+    
+    def _send_failure_notification(self, execution):
+        # Get the author of the test case
+        test_case = execution.testcase
+        test_case_author = test_case.author
+
+        subscribers = get_active_subscribers('TEST_EXECUTION_FAIL', test_case)
+        for subscriber in subscribers:
+                notify.send(
+                    sender=execution.run.created_by,
+                    recipient=subscriber,
+                    verb=f'{execution.testcase.oid} failed',
+                    description=message,
+                    target=execution.run,
+                    action_object=execution
+                )
+
+        # Check if the author exists
+        if test_case_author:
+            # Compose the message content
+            message = f"Test Case '{execution.testcase.oid}' failed during the test run on {execution.run.date}."
+            
+            # Send a notification to the test case author
+            notify.send(
+                sender=execution.run.created_by,
+                recipient=test_case_author,
+                verb=f'{execution.testcase.oid} failed',
+                description=message,
+                target=execution.run,
+                action_object=execution,
+            )

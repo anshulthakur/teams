@@ -26,9 +26,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import SessionAuthentication
 
-from teams_core.models import TestCase, TestRun, TestExecution, TestSuite
+from teams_core.models import TestCase, TestRun, TestExecution, TestSuite, Subscription
 from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, TestSuiteSerializer, UserSerializer, GroupSerializer
 #from teams_core.auth import CsrfExemptSessionAuthentication
+
+from notifications.models import Notification
+from django.contrib.contenttypes.models import ContentType
+
+from .utils import add_subscription, toggle_subscription
 
 from .export import generate_docx, generate_pdf
 
@@ -315,7 +320,6 @@ class TestRunViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
 
     def perform_create(self, serializer):
-        print('perform create')
         # Ensure atomic operation
         with transaction.atomic():
             # Before creating, validate uniqueness to avoid duplicates
@@ -407,3 +411,54 @@ def export_testsuite(request, id, format_type='docx'):
 
     except OSError as e:
         return HttpResponse(f"Error: {str(e)}", status=500)
+    
+@login_required
+def mark_notifications_read(request):
+    request.user.notifications.unread().mark_all_as_read()
+    return redirect('notifications:all')  # Adjust the redirect URL as needed
+
+@login_required
+def all_notifications(request):
+    # Separate notifications into unread and read for clarity
+    unread_notifications = request.user.notifications.unread()
+    read_notifications = request.user.notifications.read()
+    
+    return render(request, 'notification/all_notifications.html', {
+        'unread_notifications': unread_notifications,
+        'read_notifications': read_notifications,
+    })
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.mark_as_read()
+
+    if request.headers.get('HX-Request') == 'true':
+        # If the request is from HTMX, return a small HTML snippet instead of redirecting
+        return HttpResponse(
+            '<span class="text-muted">Marked as Read</span>', content_type="text/html"
+        )
+    else:
+        # Otherwise, redirect to the notifications page
+        return redirect('notifications:all_notifications')
+
+@login_required
+def delete_notification(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.delete()
+    return redirect('notifications:all_notifications')
+
+
+@login_required
+def subscribe_to_event(request, object_type, object_id, event_type):
+    model = ContentType.objects.get(model=object_type).model_class()
+    obj = get_object_or_404(model, id=object_id)
+    add_subscription(request.user, event_type, obj)
+    return redirect(obj.get_absolute_url())
+
+@login_required
+def unsubscribe_from_event(request, object_type, object_id, event_type):
+    model = ContentType.objects.get(model=object_type).model_class()
+    obj = get_object_or_404(model, id=object_id)
+    toggle_subscription(request.user, event_type, obj)
+    return redirect(obj.get_absolute_url())

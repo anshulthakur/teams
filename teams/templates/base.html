@@ -1,4 +1,6 @@
 {% load static %}
+{% load notifications_tags %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,6 +57,35 @@
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
+                        <!-- Notification Bell -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bell"></i>
+                                {% if user.notifications.unread.count %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ user.notifications.unread.count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px;">
+                                <li class="dropdown-header">Notifications</li>
+                                {% if user.notifications.unread %}
+                                    {% for notification in user.notifications.unread %}
+                                        <li>
+                                            <a class="dropdown-item" href="{{ notification.target.get_absolute_url }}">
+                                                {{ notification.verb }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-center" href="{% url 'teams_core:all_notifications' %}">View All Notifications</a></li>
+                                {% else %}
+                                    <li><span class="dropdown-item text-muted">No new notifications</span></li>
+                                    <li><a class="dropdown-item text-center" href="{% url 'teams_core:all_notifications' %}">View All Notifications</a></li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        <!-- User Profile Dropdown -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 {{ user.username }}
@@ -103,6 +134,18 @@
             });
         });
     </script>
+
+    <script>
+        document.addEventListener('click', function(event) {
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            const dropdownMenu = document.querySelector('.dropdown-menu[aria-labelledby="notificationDropdown"]');
+            
+            if (!notificationDropdown.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                dropdownMenu.classList.remove('show'); // Hide the dropdown
+            }
+        });
+    </script>
+    
     {% block extra_scripts %}
     {% endblock %}
 </body>

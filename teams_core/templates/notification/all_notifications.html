@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}All Notifications{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Notifications</h1>
+    
+    <!-- Unread Notifications -->
+    <h3>Unread Notifications</h3>
+    <ul class="list-group mb-4">
+        {% for notification in unread_notifications %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div id="notification-{{ notification.id }}">
+                    <a href="{{ notification.target.get_absolute_url }}">
+                        {{ notification.verb }}: {{ notification.description|truncatechars:50 }}
+                    </a>
+                    <div>
+                        <!-- <a href="{% url 'teams_core:mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-primary">Mark as Read</a> -->
+                        <a href="{% url 'teams_core:mark_notification_as_read' notification.id %}" 
+                            class="btn btn-sm btn-outline-primary"
+                            hx-get="{% url 'teams_core:mark_notification_as_read' notification.id %}"
+                            hx-target="#notification-{{ notification.id }}"
+                            hx-swap="outerHTML">Mark as Read</a>
+                        <a href="{% url 'teams_core:delete_notification' notification.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </div>
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">No unread notifications.</li>
+        {% endfor %}
+    </ul>
+
+    <!-- Read Notifications -->
+    <h3>Read Notifications</h3>
+    <ul class="list-group">
+        {% for notification in read_notifications %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{{ notification.target.get_absolute_url }}">
+                    {{ notification.verb }}: {{ notification.description|truncatechars:50 }}
+                </a>
+                <div>
+                    <a href="{% url 'teams_core:delete_notification' notification.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                </div>
+            </li>
+        {% empty %}
+            <li class="list-group-item text-muted">No read notifications.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

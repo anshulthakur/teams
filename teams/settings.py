@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_htmx',
     'webpack_loader',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -182,3 +183,11 @@ AUTH_LDAP_BIND_PASSWORD = ""
 AUTH_LDAP_USER_SEARCH = LDAPSearch(
     "ou=users,dc=srsw,dc=cdot,dc=in", ldap.SCOPE_SUBTREE, "(uid=%(user)s)"
 )
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email":"mail"
+}
+
+DJANGO_NOTIFICATIONS_CONFIG = { 'SOFT_DELETE': True}

@@ -2,6 +2,9 @@ from django.db import models, IntegrityError, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 
 class TestSuite(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
@@ -32,6 +35,9 @@ class TestCase(models.Model):
     def __str__(self):
         return self.name
     
+    def get_absolute_url(self):
+        return reverse('teams_core:test_case_detail', args=[str(self.id)])
+    
 class TestRun(models.Model):
     date = models.DateTimeField(default=timezone.now, null=False)
     created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
@@ -49,6 +55,9 @@ class TestRun(models.Model):
 
     def successful_tests(self):
         return TestExecution.objects.filter(run=self, result='PASS').count()
+    
+    def get_absolute_url(self):
+        return reverse('teams_core:test_run_detail', args=[str(self.id)])
 
 class TestExecution(models.Model):
     TEST_RESULT_CHOICES = [
@@ -67,3 +76,26 @@ class TestExecution(models.Model):
 
     def __str__(self):
         return f'TE on {self.date} for {self.testcase}'
+    
+class Subscription(models.Model):
+    EVENT_CHOICES = [
+        ('TEST_EXECUTION_FAIL', 'Test Execution Failure'),
+        ('TEST_RUN_CREATED', 'New Test Run Created'),
+        # Additional event types as needed
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
+    event_type = models.CharField(max_length=50, choices=EVENT_CHOICES)
+    active = models.BooleanField(default=True)
+    created_on = models.DateTimeField(default=timezone.now)
+
+    # Generic foreign key fields
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    subscribed_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self):
+        return f"{self.user} subscription to {self.event_type} for {self.subscribed_object}"
+
+    class Meta:
+        unique_together = ('user', 'event_type', 'content_type', 'object_id')
