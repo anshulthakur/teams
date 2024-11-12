@@ -1,23 +1,24 @@
 {% extends 'base.html' %}
-
-{% block title %}{{ testsuite.name }}{% endblock %}
+{% load subscription_tags %}
+{% block title %}{{ object.name }}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="export-buttons mt-3">
-        <a href="{% url 'teams_core:test_suite_edit' testsuite.id %}" class="btn btn-secondary">Edit</a>
-        <a href="{% url 'teams_core:export_testsuite' testsuite.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
-        {% comment %} <a href="{% url 'teams_core:export_testsuite' testsuite.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
+        <a href="{% url 'teams_core:test_suite_edit' object.id %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'teams_core:export_testsuite' object.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
+        {% comment %} <a href="{% url 'teams_core:export_testsuite' object.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
+        {% include 'subscription/subscribe.html' %}
     </div>
-    <h1>{{ testsuite.name }}</h1>
-    <h2>ID: {{ testsuite.id }}</h2>
-    <h2>Created on: {{ testsuite.created_on|date:"M d, Y H:i" }}</h2>
-    <h2>Last modified: {{ testsuite.last_modified|date:"M d, Y H:i" }}</h2>
-    <h2>Created By: {{ testsuite.author.username }}</h2>
+    <h1>{{ object.name }}</h1>
+    <h2>ID: {{ object.id }}</h2>
+    <h2>Created on: {{ object.created_on|date:"M d, Y H:i" }}</h2>
+    <h2>Last modified: {{ object.last_modified|date:"M d, Y H:i" }}</h2>
+    <h2>Created By: {{ object.author.username }}</h2>
     
     <section>
         <h3>Description</h3>
-        <p>{{ testsuite.content }}</p>
+        <p>{{ object.content }}</p>
     </section>
 
     <!-- Table of Test Cases included in the test suite -->

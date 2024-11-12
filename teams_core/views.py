@@ -11,6 +11,7 @@ from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.db.models import Q
 from django.views.decorators.http import require_http_methods
+from django.template.loader import render_to_string
 
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -33,7 +34,7 @@ from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestEx
 from notifications.models import Notification
 from django.contrib.contenttypes.models import ContentType
 
-from .utils import add_subscription, toggle_subscription
+from .utils import add_subscription, remove_subscription
 
 from .export import generate_docx, generate_pdf
 
@@ -89,7 +90,7 @@ def test_case_detail(request, id):
     test_executions = TestExecution.objects.filter(testcase=test_case).order_by('-date')
     
     return render(request, 'test_case/test_case_detail.html', {
-        'testcase': test_case,
+        'object': test_case,
         'content': content,
         'test_executions': test_executions
     })
@@ -135,7 +136,7 @@ def test_suite_detail(request, id):
     #     })
 
     return render(request, 'test_suite/test_suite_detail.html', {
-        'testsuite': testsuite,
+        'object': testsuite,
         'testcases': test_cases
     })
 
@@ -457,11 +458,16 @@ def subscribe_to_event(request, object_type, object_id, event_type):
     model = ContentType.objects.get(model=object_type).model_class()
     obj = get_object_or_404(model, id=object_id)
     add_subscription(request.user, event_type, obj)
-    return redirect(obj.get_absolute_url())
+
+    context = { 'user': request.user, 'object': obj, }
+    html = render_to_string('subscription/subscribe.html', context) 
+    return HttpResponse(html)
 
 @login_required
 def unsubscribe_from_event(request, object_type, object_id, event_type):
     model = ContentType.objects.get(model=object_type).model_class()
     obj = get_object_or_404(model, id=object_id)
-    toggle_subscription(request.user, event_type, obj)
-    return redirect(obj.get_absolute_url())
+    remove_subscription(request.user, event_type, obj)
+    context = { 'user': request.user, 'object': obj, }
+    html = render_to_string('subscription/subscribe.html', context) 
+    return HttpResponse(html)

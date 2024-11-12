@@ -1,37 +1,18 @@
 {% extends 'base.html' %}
 {% load subscription_tags %}
-{% block title %}{{ testcase.name }}{% endblock %}
+{% block title %}{{ object.name }}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="export-buttons mt-3">
-        <a href="{% url 'teams_core:test_case_edit' testcase.id %}" class="btn btn-secondary">Edit</a>
-        <a href="{% url 'teams_core:export_testcase' testcase.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
-        {% comment %} <a href="{% url 'teams_core:export_testcase' testcase.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
-        {% if user.is_authenticated %}
-            {% if user|is_subscribed:testcase %}
-                <a href="{% url 'teams_core:unsubscribe_from_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}" 
-                   class="btn btn-warning"
-                   hx-get="{% url 'teams_core:unsubscribe_from_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}"
-                   hx-target="#subscription-status"
-                   hx-swap="outerHTML">
-                    Unsubscribe from Failure Notifications
-                </a>
-            {% else %}
-                <a href="{% url 'teams_core:subscribe_to_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}" 
-                   class="btn btn-primary"
-                   hx-get="{% url 'teams_core:subscribe_to_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}"
-                   hx-target="#subscription-status"
-                   hx-swap="outerHTML">
-                    Subscribe to Failure Notifications
-                </a>
-            {% endif %}
-        {% endif %}
-        
+        <a href="{% url 'teams_core:test_case_edit' object.id %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'teams_core:export_testcase' object.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
+        {% comment %} <a href="{% url 'teams_core:export_testcase' object.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
+        {% include 'subscription/subscribe.html' %}
     </div>
-    <h1>{{ testcase.name }}</h1>
-    <h2>ID: {{ testcase.id }}</h2>
-    <h2>Identifier: {{ testcase.oid }}</h2>
+    <h1>{{ object.name }}</h1>
+    <h2>ID: {{ object.id }}</h2>
+    <h2>Identifier: {{ object.oid }}</h2>
     <section>
         <h3>Description</h3>
         <p>{{ content.description }}</p>

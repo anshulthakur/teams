@@ -1,0 +1,20 @@
+{% load subscription_tags %}
+{% if user.is_authenticated %}
+    <span id="suite-subscription" hx-swap-oob="true">
+        {% if user|is_subscribed:object %}
+            <a href="{% url 'teams_core:unsubscribe_from_event' object|model_name object.id 'TEST_EXECUTION_FAIL' %}" 
+               class="btn btn-warning"
+               hx-get="{% url 'teams_core:unsubscribe_from_event' object|model_name object.id 'TEST_EXECUTION_FAIL' %}"
+               hx-target="#suite-subscription">
+                Unsubscribe from Failure Notifications
+            </a>
+        {% else %}
+            <a href="{% url 'teams_core:subscribe_to_event' object|model_name object.id 'TEST_EXECUTION_FAIL' %}" 
+               class="btn btn-primary"
+               hx-get="{% url 'teams_core:subscribe_to_event' object|model_name object.id 'TEST_EXECUTION_FAIL' %}"
+               hx-target="#suite-subscription">
+                Subscribe to Failure Notifications
+            </a>
+        {% endif %}
+    </span>
+{% endif %}

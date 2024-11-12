@@ -14,7 +14,6 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = ['id', 'name']
 
-
 class TestCaseSerializer(serializers.ModelSerializer):
     
     class Meta:

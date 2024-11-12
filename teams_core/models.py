@@ -17,6 +17,9 @@ class TestSuite(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def get_absolute_url(self):
+        return reverse('teams_core:test_suite_detail', args=[str(self.id)])
 
 class TestCase(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)

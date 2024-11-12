@@ -16,3 +16,7 @@ def is_subscribed(user, obj):
         event_type='TEST_EXECUTION_FAIL',
         active=True
     ).exists()
+
+@register.filter
+def model_name(value):
+    return ContentType.objects.get_for_model(value).model
