@@ -9,12 +9,25 @@
         <a href="{% url 'teams_core:export_testcase' testcase.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
         {% comment %} <a href="{% url 'teams_core:export_testcase' testcase.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
         {% if user.is_authenticated %}
-            {% if user|is_subscribed:test_case %}
-                <a href="{% url 'teams_core:unsubscribe_from_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}" class="btn btn-warning">Unsubscribe from Failure Notifications</a>
+            {% if user|is_subscribed:testcase %}
+                <a href="{% url 'teams_core:unsubscribe_from_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}" 
+                   class="btn btn-warning"
+                   hx-get="{% url 'teams_core:unsubscribe_from_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}"
+                   hx-target="#subscription-status"
+                   hx-swap="outerHTML">
+                    Unsubscribe from Failure Notifications
+                </a>
             {% else %}
-                <a href="{% url 'teams_core:subscribe_to_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}" class="btn btn-primary">Subscribe to Failure Notifications</a>
+                <a href="{% url 'teams_core:subscribe_to_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}" 
+                   class="btn btn-primary"
+                   hx-get="{% url 'teams_core:subscribe_to_event' 'testcase' testcase.id 'TEST_EXECUTION_FAIL' %}"
+                   hx-target="#subscription-status"
+                   hx-swap="outerHTML">
+                    Subscribe to Failure Notifications
+                </a>
             {% endif %}
         {% endif %}
+        
     </div>
     <h1>{{ testcase.name }}</h1>
     <h2>ID: {{ testcase.id }}</h2>

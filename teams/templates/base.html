@@ -22,6 +22,7 @@
     {% block extra_css %}
     <!-- Custom CSS (if needed) -->
     <!--<link href="{% static 'css/styles.css' %}" rel="stylesheet"> -->
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
     {% endblock %}
 </head>
 <body>
@@ -70,18 +71,23 @@
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px;">
                                 <li class="dropdown-header"><a class="link-underline link-underline-opacity-0 text-decoration-none" href="{% url 'teams_core:all_notifications' %}">Notifications</a></li>
                                 {% if user.notifications.unread %}
-                                    {% for notification in user.notifications.unread %}
-                                        <li class="d-flex align-items-center">
-                                            <input type="checkbox" 
-                                                   class="form-check-input me-2" 
-                                                   hx-get="{% url 'teams_core:mark_notification_as_read' notification.id %}" 
-                                                   hx-target="#notification-item-{{ notification.id }}" 
-                                                   hx-swap="outerHTML">
-                                            <a class="dropdown-item" href="{{ notification.target.get_absolute_url }}" id="notification-item-{{ notification.id }}">
-                                                {{ notification.verb }}
+                                {% for notification in user.notifications.unread %}
+                                    <li class="d-flex align-items-center border-bottom py-2 px-2 notification-item" id="notification-item-{{ notification.id }}">
+                                        <input type="checkbox" 
+                                            class="form-check-input me-2" 
+                                            hx-get="{% url 'teams_core:mark_notification_as_read' notification.id %}" 
+                                            hx-trigger="click"
+                                            hx-on="htmx:afterRequest: slideOut"
+                                            hx-target="#notification-item-{{ notification.id }}">
+                                        <div class="flex-grow-1" style="overflow-wrap: anywhere;">
+                                            <a class="dropdown-item text-truncate" 
+                                            style="max-width: 220px;" 
+                                            href="{{ notification.target.get_absolute_url }}">
+                                                {{ notification.verb }}: {{ notification.description|truncatechars:50 }}
                                             </a>
-                                        </li>
-                                    {% endfor %}
+                                        </div>
+                                    </li>
+                                {% endfor %}
                                     <li><hr class="dropdown-divider"></li>
                                 {% else %}
                                     <li><span class="dropdown-item text-muted">No new notifications</span></li>
@@ -148,7 +154,19 @@
             }
         });
     </script>
-    
+
+    <script>
+        function slideOut(event) {
+            const notificationItem = event.target.closest('.notification-item');
+            notificationItem.classList.add('slide-out');
+
+            // Remove the item from the DOM after the transition ends
+            notificationItem.addEventListener('transitionend', () => {
+                notificationItem.remove();
+            });
+        }
+    </script>
+
     {% block extra_scripts %}
     {% endblock %}
 </body>

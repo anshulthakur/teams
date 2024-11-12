@@ -16,6 +16,20 @@ def add_subscription(user, event_type, obj):
         subscription.save()
     return subscription
 
+
+def remove_subscription(user, event_type, obj):
+    """
+    Deactivate a subscription if it exists.
+    """
+    content_type = ContentType.objects.get_for_model(obj)
+    Subscription.objects.filter(
+        user=user,
+        event_type=event_type,
+        content_type=content_type,
+        object_id=obj.id
+    ).update(active=False)
+
+
 def toggle_subscription(user, event_type, obj):
     """Toggle subscription status for a specific event and object."""
     content_type = ContentType.objects.get_for_model(obj)

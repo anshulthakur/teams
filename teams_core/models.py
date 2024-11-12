@@ -5,6 +5,8 @@ from datetime import datetime
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 
 class TestSuite(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
@@ -19,7 +21,8 @@ class TestSuite(models.Model):
 class TestCase(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
     oid = models.CharField(max_length=1024, blank=True, null=True, unique=True)
-    author = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    author = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='authored_cases')
+    maintainers = models.ManyToManyField(User, related_name='maintained_cases', blank=True)
     content = models.TextField(blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)

@@ -20,9 +20,10 @@ class TestCaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCase
         fields = ['id', 'name', 'oid', 'author', 'content', 'created_on', 
-                  'last_modified', 'suites', 'version']
+                  'last_modified', 'suites', 'version', 'maintainers']
         extra_kwargs = {
             'author': {'required': False},
+            'maintainers': {'required': False},
             'suites': {'required': False},
             'version': {'required': False},
             'oid': {'required': False},
@@ -138,22 +139,10 @@ class TestRunSerializer(serializers.ModelSerializer):
         test_case = execution.testcase
         test_case_author = test_case.author
 
-        subscribers = get_active_subscribers('TEST_EXECUTION_FAIL', test_case)
-        for subscriber in subscribers:
-                notify.send(
-                    sender=execution.run.created_by,
-                    recipient=subscriber,
-                    verb=f'{execution.testcase.oid} failed',
-                    description=message,
-                    target=execution.run,
-                    action_object=execution
-                )
-
+        # Compose the message content
+        message = f"Test Case '{execution.testcase.oid}' failed during the test run on {execution.run.date}."
         # Check if the author exists
         if test_case_author:
-            # Compose the message content
-            message = f"Test Case '{execution.testcase.oid}' failed during the test run on {execution.run.date}."
-            
             # Send a notification to the test case author
             notify.send(
                 sender=execution.run.created_by,
@@ -163,3 +152,15 @@ class TestRunSerializer(serializers.ModelSerializer):
                 target=execution.run,
                 action_object=execution,
             )
+        
+        if execution.run.published:
+            subscribers = get_active_subscribers('TEST_EXECUTION_FAIL', test_case)
+            for subscriber in subscribers:
+                    notify.send(
+                        sender=execution.run.created_by,
+                        recipient=subscriber,
+                        verb=f'{execution.testcase.oid} failed',
+                        description=message,
+                        target=execution.run,
+                        action_object=execution
+                    )
