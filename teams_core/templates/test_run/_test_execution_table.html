@@ -31,6 +31,7 @@
 {% block extra_scripts %}
 <script defer>
     function showFullNotes(element) {
+        event.preventDefault(); //Stop srolling out of view
         const fullNote = element.closest('.notes-column').getAttribute('data-note');
         document.getElementById('notes-modal-content').innerHTML = `<pre>${fullNote}</pre>`;
         

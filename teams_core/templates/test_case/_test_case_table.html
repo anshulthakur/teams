@@ -1,34 +1,47 @@
 <table class="table table-bordered table-hover">
     <thead>
         <tr>
-            <th class="position-relative">
-                <span>Name</span>
-                <span class="position-absolute top-0 end-0 d-flex flex-column">
-                    <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
-                       hx-vals='{"sort": {% if current_sort == "name" %}"name_asc"{% else %}"name"{% endif %}}'
-                       hx-target="#test-case-list"
-                       hx-push-url="true">
-                        <i class="bi bi-caret-up-fill {% if current_sort == 'name' %}text-primary{% endif %}"></i>
-                    </a>
-                    <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
-                       hx-vals='{"sort": {% if current_sort == "name_asc" %}"name"{% else %}"name_asc"{% endif %}}'
-                       hx-target="#test-case-list"
-                       hx-push-url="true">
-                        <i class="bi bi-caret-down-fill {% if current_sort == 'name_asc' %}text-primary{% endif %}"></i>
-                    </a>
+            <th class="position-relative row mx-0">
+                <span class="col col-md-2 px-0">Name</span>
+                <span class="col col-md-8 px-0">
+                    <input type="text" id="search-bar" class="form-control"
+                        placeholder="Search Test Cases" 
+                        value="{% if search_query %}{{ search_query }}{% endif %}"
+                        hx-get="{% url 'teams_core:test_case_list' %}"
+                        hx-trigger="keyup changed delay:500ms"
+                        hx-target="#test-case-list"
+                        hx-push-url="true"
+                        hx-vals='{"name": this.value, "sort": "{{ current_sort }}"}'
+                        oninput="this.setAttribute('hx-vals', JSON.stringify({name: this.value, sort: '{{ current_sort }}'}))">
                 </span>
+                <div class="col col-md-2 px-0 position-relative">
+                    <span class="position-absolute top-0 end-0 d-flex flex-column">
+                        <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
+                           hx-target="#test-case-list"
+                           hx-push-url="true"
+                           onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: 'name'}))">
+                            <i class="bi bi-caret-up-fill {% if current_sort == 'name' %}text-primary{% endif %}"></i>
+                        </a>
+                        <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
+                           hx-target="#test-case-list"
+                           hx-push-url="true"
+                           onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: 'name_asc'}))">
+                            <i class="bi bi-caret-down-fill {% if current_sort == 'name_asc' %}text-primary{% endif %}"></i>
+                        </a>
+                    </span>
+                </div>
             </th>
             <th class="position-relative">
                 <span>Last Modified</span>
                 <span class="position-absolute top-0 end-0 d-flex flex-column">
                     <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
-                       hx-vals='{"sort": {% if current_sort == "modify" %}"modify_asc"{% else %}"modify"{% endif %}}'
+                       hx-vals='{"name": document.getElementById("search-bar").value, "sort": {% if current_sort == "modify" %}"modify_asc"{% else %}"modify"{% endif %}}'
                        hx-target="#test-case-list"
                        hx-push-url="true">
                         <i class="bi bi-caret-up-fill {% if current_sort == 'modify' %}text-primary{% endif %}"></i>
                     </a>
                     <a href="#" hx-get="{% url 'teams_core:test_case_list' %}"
-                       hx-vals='{"sort": {% if current_sort == "modify_asc" %}"modify"{% else %}"modify_asc"{% endif %}}'
+                       hx-vals='{"name": document.getElementById("search-bar").value, "sort": {% if current_sort == "modify_asc" %}"modify"{% else %}"modify_asc"{% endif %}}'
                        hx-target="#test-case-list"
                        hx-push-url="true">
                         <i class="bi bi-caret-down-fill {% if current_sort == 'modify_asc' %}text-primary{% endif %}"></i>
@@ -38,7 +51,7 @@
             <th>Actions</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="test-case-list">
         {% for test_case in test_cases %}
         <tr id="test-case-{{ test_case.id }}">
             <td>

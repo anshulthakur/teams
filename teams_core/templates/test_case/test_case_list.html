@@ -6,15 +6,6 @@
 <div class="container mt-5">
     <!-- Search and Filter Section -->
     <div class="row">
-        <div class="col-md-6">
-            <input type="text" id="search-bar" class="form-control" placeholder="Search Test Cases"
-                hx-get="{% url 'teams_core:test_case_list' %}"
-                hx-trigger="keyup changed delay:500ms"
-                hx-target="#test-case-list"
-                hx-push-url="true"
-                hx-vals='{"name": this.value, "sort": "{{ current_sort }}"}'
-                oninput="this.setAttribute('hx-vals', JSON.stringify({name: this.value, sort: '{{ current_sort }}'}))">
-        </div>
         <div class="col-md-6 text-right">
             <a href="{% url 'teams_core:test_case_create' %}" class="btn btn-primary">Create New Test Case</a>
         </div>

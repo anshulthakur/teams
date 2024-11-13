@@ -65,13 +65,15 @@ def test_case_list(request):
     if request.headers.get('HX-Request') == 'true':
         return render(request, 'test_case/_test_case_table.html', {
             'test_cases': test_cases,
-            'current_sort': sorting
+            'current_sort': sorting,
+            'search_query': query,
         })
 
     # Render the full page for non-HTMX requests
     return render(request, 'test_case/test_case_list.html', {
         'test_cases': test_cases,
-        'current_sort': sorting
+        'current_sort': sorting,
+        'search_query': query,
     })
 
 def test_case_detail(request, id):
