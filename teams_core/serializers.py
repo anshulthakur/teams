@@ -149,7 +149,7 @@ class TestRunSerializer(serializers.ModelSerializer):
                 verb=f'{execution.testcase.oid} failed',
                 description=message,
                 target=execution.run,
-                action_object=execution,
+                action_object=execution.testcase,
             )
         
         if execution.run.published:
@@ -161,5 +161,5 @@ class TestRunSerializer(serializers.ModelSerializer):
                         verb=f'{execution.testcase.oid} failed',
                         description=message,
                         target=execution.run,
-                        action_object=execution
+                        action_object=execution.testcase
                     )

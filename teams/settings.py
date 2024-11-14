@@ -191,3 +191,10 @@ AUTH_LDAP_USER_ATTR_MAP = {
 }
 
 DJANGO_NOTIFICATIONS_CONFIG = { 'SOFT_DELETE': True}
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.cdot.in'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = False
+# EMAIL_HOST_USER = 'athakur@cdot.in'
+# EMAIL_HOST_PASSWORD = ''

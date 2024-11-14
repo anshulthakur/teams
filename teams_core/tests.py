@@ -13,6 +13,13 @@ from django.http import HttpRequest as Request # Import HttpRequest
 from teams_core.serializers import *
 from teams_core.models import *
 
+from django.core import mail
+from django.core.management import call_command
+from django.contrib.contenttypes.models import ContentType
+from notifications.models import Notification
+from django.utils import timezone
+from datetime import timedelta
+
 User = get_user_model()
 
 # Create your tests here.
@@ -310,3 +317,64 @@ class TestRunAPITests(APITestCase):
         self.client.logout()  # Ensure no user is authenticated
         response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class NotificationSummaryTests(APITestCase):
+
+    def setUp(self):
+        # Set up user and test cases
+        self.test_user = User.objects.create_user(
+            username='summaryuser',
+            password='password123',
+            email='summaryuser@example.com'
+        )
+
+        self.test_case = TestCase.objects.create(
+            name='Failing Test Case',
+            oid='TC1001',
+            author=self.test_user,
+        )
+
+        self.test_run = TestRun.objects.create(
+            created_by=self.test_user,
+            notes="Test run with failure",
+            published=True
+        )
+
+        # Create multiple TestExecution instances with timedelta for duration
+        self.execution1 = TestExecution.objects.create(
+            run=self.test_run,
+            testcase=self.test_case,
+            result="FAIL",
+            notes="This test failed",
+            duration=timedelta(minutes=3)  # Set duration as timedelta
+        )
+
+        # Create a notification for this user
+        Notification.objects.create(
+            recipient=self.test_user,
+            actor_content_type=ContentType.objects.get_for_model(self.execution1.testcase),
+            actor_object_id=self.execution1.testcase.id,
+            verb=f'{self.execution1.testcase.oid} failed',
+            description="Test Case 'TC1001' failed",
+            timestamp=timezone.now()
+        )
+
+    def test_notification_summary_email(self):
+        """
+        Test that the management command for sending summary notifications sends an email with the correct details.
+        """
+
+        # Run the management command to send summary notifications
+        call_command('send_notification_summary')
+
+        # Check that an email was sent
+        self.assertEqual(len(mail.outbox), 1)
+
+        # Verify email contents
+        email = mail.outbox[0]
+        self.assertIn("Test Failure Summary Notification", email.subject)
+        self.assertIn("Hello summaryuser,", email.body)
+        # self.assertIn("Execution of test case TC1001 failed", email.body)
+        self.assertIn("Total new failures: 1", email.body)
+        self.assertIn("https://example.com/test-case/1/", email.body)
