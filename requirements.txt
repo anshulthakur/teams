@@ -9,3 +9,6 @@ djangorestframework-simplejwt==5.3.1
 python-docx==1.1.2
 pypandoc==1.14
 django-notifications-hq @ git+https://github.com/Naggafin/django-notifications@1.9.2-dev
+python-ldap
+django-auth-ldap
+django-webpack-loader
