@@ -41,20 +41,12 @@ from .export import generate_docx, generate_pdf
 def test_case_list(request):
     query = request.GET.get('name')
     sorting = request.GET.get('sort', 'modify')  # Default to sorting by last modified
+    order = request.GET.get('order', 'desc')  # Default to descending
 
-    # Determine ordering
-    ordering = '-last_modified'
-    if sorting == 'modify_asc':
-        ordering = 'last_modified'
-    elif sorting == 'name_asc':
-        ordering = 'name'
-    elif sorting == 'name':
-        ordering = '-name'
-    elif sorting == 'oid_asc':
-        ordering = 'oid'
-    elif sorting == 'oid':
-        ordering = '-oid'
-        
+    if sorting == 'modify': #handle a minor transformation
+        sorting = 'last_modified'
+    ordering = f"{'-' if order == 'desc' else ''}{sorting}"
+
     test_cases = TestCase.objects.all().order_by(ordering)
 
     # Filter by search query if provided
@@ -65,15 +57,17 @@ def test_case_list(request):
     if request.headers.get('HX-Request') == 'true':
         return render(request, 'test_case/_test_case_table.html', {
             'test_cases': test_cases,
-            'current_sort': sorting,
             'search_query': query,
+            'current_sort': sorting,
+            'current_order': order
         })
 
     # Render the full page for non-HTMX requests
     return render(request, 'test_case/test_case_list.html', {
         'test_cases': test_cases,
-        'current_sort': sorting,
         'search_query': query,
+        'current_sort': sorting,
+        'current_order': order
     })
 
 def test_case_detail(request, id):
