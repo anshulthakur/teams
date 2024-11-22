@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
+from django.db.models import Sum
 
 class TestSuite(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
@@ -64,6 +65,10 @@ class TestRun(models.Model):
     
     def get_absolute_url(self):
         return reverse('teams_core:test_run_detail', args=[str(self.id)])
+    
+    def get_runtime(self):
+        duration = TestExecution.objects.filter(run=self).aggregate(Sum("duration"))
+        return duration['duration__sum']
 
 class TestExecution(models.Model):
     TEST_RESULT_CHOICES = [
