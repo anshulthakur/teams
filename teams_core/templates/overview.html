@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load render_bundle from webpack_loader %}
+{% load static %}
+
+{% block title %}TEAMS overview{% endblock %}
+{% block extra_css %}
+<link href="{% static 'css/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <script type="text/javascript">
+        // Make the CSRF token available as a JavaScript variable
+        const csrftoken = "{{ csrf_token }}";
+    </script>
+    <main class="row overflow-auto">
+        <h2>Page under construction. Fields shown here are representational only.</h2>
+        <div class="col pt-4">
+            <div id="app" class="position-relative"></div>
+            {% render_bundle "overview" %}
+        </div>
+    </main>
+{% endblock content %}

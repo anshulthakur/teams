@@ -6,7 +6,8 @@ module.exports = {
   entry: {
     testcase: './testcase.js',
     testrun: './testrun.js',
-    testsuite: './testsuite.js'
+    testsuite: './testsuite.js',
+    overview: './overview.js'
   },
   output: {
     path: path.resolve('./dist/'),

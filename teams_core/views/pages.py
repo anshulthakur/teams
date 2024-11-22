@@ -19,6 +19,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from teams_core.utils import add_subscription, remove_subscription
 from teams_core.export import generate_docx, generate_pdf
 
+def overview(request):
+    return render(request, 'overview.html', {})
+
+
 def test_case_list(request):
     query = request.GET.get('name', '')  # Get search query
     sorting = request.GET.get('sort', 'modify')  # Default sorting by last modified

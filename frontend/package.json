@@ -17,7 +17,7 @@
         "react-fontawesome": "^1.7.1",
         "react-markdown-editor-lite": "^1.3.4",
         "react-router-dom": "^6.23.1",
-        "recharts": "^2.12.7",
+        "recharts": "^2.13.3",
         "showdown": "^2.1.0"
     },
     "devDependencies": {
@@ -40,6 +40,7 @@
     "exports": {
         "testcase": "./testcase.js",
         "testrun": "./testrun.js",
-        "testsuite": "./testsuite.js"
+        "testsuite": "./testsuite.js",
+        "overview": "./overview.js"
     }
 }

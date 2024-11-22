@@ -16,6 +16,7 @@ router.register(r'groups', views.GroupViewSet)
 app_name = "teams_core"
 
 urlpatterns = [
+    path('test-cases', views.test_case_list, name='test_case_list'),
     path('test-cases/create/', views.test_case_create, name='test_case_create'),
     path('test-cases/<int:id>/', views.test_case_detail, name='test_case_detail'),
     path('test-cases/<int:id>/export/<str:format_type>/', views.export_testcase, name='export_testcase'),
@@ -39,5 +40,5 @@ urlpatterns = [
     path('notifications/mark-all-read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('<str:object_type>/<int:object_id>/subscribe/<str:event_type>/', views.subscribe_to_event, name='subscribe_to_event'),
     path('<str:object_type>/<int:object_id>/unsubscribe/<str:event_type>/', views.unsubscribe_from_event, name='unsubscribe_from_event'),
-    path('', views.test_case_list, name='test_case_list'),
+    path('', views.overview, name='overview'),
 ]
