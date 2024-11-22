@@ -1,27 +1,43 @@
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
-const FrequentFailures = () => {
-  // Placeholder data for fixtures
-  const data = [
-    { name: "TC001", failures: 15 },
-    { name: "TC005", failures: 10 },
-    { name: "TC003", failures: 8 },
-    { name: "TC002", failures: 6 },
-  ];
+const FrequentFailures = ({ data }) => {
+  const chartData = data.map((failure) => ({
+    name: failure.testcase__name,
+    failures: failure.failures,
+  }));
 
   return (
-    <div className="card my-3">
-      <div className="card-header">Frequent Failures</div>
-      <div className="card-body">
-        <BarChart width={500} height={300} data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="failures" fill="#dc3545" name="Failures" />
-        </BarChart>
+    <div>
+      <h2>Frequent Failures</h2>
+      <div className="row">
+        <div className="col-md-6">
+          <BarChart width={500} height={300} data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="failures" fill="#007bff" />
+          </BarChart>
+        </div>
+        <div className="col-md-6">
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>Test Case</th>
+                <th>Failure Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((failure, index) => (
+                <tr key={index}>
+                  <td>{failure.testcase__name}</td>
+                  <td>{failure.failures}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

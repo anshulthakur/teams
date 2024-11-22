@@ -24,6 +24,13 @@ from rest_framework.authentication import SessionAuthentication
 from teams_core.models import TestCase, TestRun, TestExecution, TestSuite
 from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestExecutionSerializer, TestSuiteSerializer, UserSerializer, GroupSerializer
 
+from teams_core.metrics import (
+    get_test_health_overview,
+    get_frequent_failures,
+    get_latest_test_run_summary,
+    get_stable_and_unstable_tests,
+)
+
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
     #permission_classes = [IsAuthenticatedOrReadOnly]  # Use more appropriate permission
@@ -172,3 +179,52 @@ class TestExecutionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     #authentication_classes = [CsrfExemptSessionAuthentication]  # Apply custom authentication class
     authentication_classes = [JWTAuthentication, SessionAuthentication]
+
+class TestHealthOverviewView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        """
+        API endpoint to return the test health overview.
+        """
+        overview = get_test_health_overview()
+        return Response(overview)
+
+
+class FrequentFailuresView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        """
+        API endpoint to return the most frequent test failures.
+        """
+        limit = int(request.query_params.get("limit", 5))  # Default to top 5
+        failures = list(get_frequent_failures(limit))
+        return Response(failures)
+
+
+class LatestTestRunSummaryView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        """
+        API endpoint to return summaries of the latest test runs.
+        """
+        limit = int(request.query_params.get("limit", 5))  # Default to top 5
+        summaries = get_latest_test_run_summary(limit)
+        return Response(summaries)
+
+
+class StableUnstableTestsView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        """
+        API endpoint to return the most stable and unstable tests.
+        """
+        limit = int(request.query_params.get("limit", 5))  # Default to top 5
+        stable_tests, unstable_tests = get_stable_and_unstable_tests(limit)
+        return Response({
+            "stable_tests": [{"name": t.name, "pass_ratio": t.pass_ratio} for t in stable_tests],
+            "unstable_tests": [{"name": t.name, "fail_ratio": t.fail_ratio} for t in unstable_tests],
+        })

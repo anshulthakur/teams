@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase as UnitTestCase
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 import datetime
@@ -20,10 +20,12 @@ from notifications.models import Notification
 from django.utils import timezone
 from datetime import timedelta
 
+from teams_core.metrics import *
+
 User = get_user_model()
 
 # Create your tests here.
-class SerializerTests(APITestCase):
+class Test_Serializers(APITestCase):
     def setUp(self):
         # Create a test user
         self.test_user = User.objects.create_user(
@@ -38,7 +40,7 @@ class SerializerTests(APITestCase):
     def tearDown(self):
         pass
 
-class Test_TestRuns(SerializerTests):
+class Test_TestRuns(Test_Serializers):
     def setUp(self):
         super().setUp()
         # Create some test cases for the test run
@@ -102,7 +104,7 @@ class Test_TestRuns(SerializerTests):
         self.assertEqual(TestRun.objects.count(), 0)
         self.assertEqual(TestExecution.objects.count(), 0)
 
-class Test_TestCases(SerializerTests):
+class Test_TestCases(Test_Serializers):
 
     def setUp(self):
         super().setUp()
@@ -161,7 +163,7 @@ class Test_TestCases(SerializerTests):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(TestCase.objects.count(), 0)
 
-class TestSuiteTest(TestCase):
+class Test_TestSuite(UnitTestCase):
     def setUp(self):
         # Create test cases to add to the suite
         self.testcase1 = TestCase.objects.create(name="Test Case 1", oid="TC001")
@@ -179,7 +181,7 @@ class TestSuiteTest(TestCase):
         response = self.client.get(reverse('export_testsuite', args=[suite.id, 'docx']))
         self.assertEqual(response.status_code, 200)
 
-class TestAuthentication(APITestCase):
+class Test_Authentication(APITestCase):
 
     def setUp(self):
         # Create a test user
@@ -263,7 +265,7 @@ class TestAuthentication(APITestCase):
         response = self.client.post(reverse('teams_core:testrun-list'), self.test_run_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-class TestRunAPITests(APITestCase):
+class Test_TestRunAPI(APITestCase):
     def setUp(self):
         # Create a user for authentication
         self.user = User.objects.create_user(username='testuser', password='testpass')
@@ -319,7 +321,7 @@ class TestRunAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class NotificationSummaryTests(APITestCase):
+class Test_NotificationSummary(APITestCase):
 
     def setUp(self):
         # Set up user and test cases
@@ -378,3 +380,81 @@ class NotificationSummaryTests(APITestCase):
         # self.assertIn("Execution of test case TC1001 failed", email.body)
         self.assertIn("Total new failures: 1", email.body)
         self.assertIn("https://example.com/test-case/1/", email.body)
+
+class Test_HealthMetrics(UnitTestCase):
+    
+    def setUp(self):
+        # Create sample test cases and executions
+        self.test_case1 = TestCase.objects.create(name="Login Test")
+        self.test_case2 = TestCase.objects.create(name="Signup Test")
+        self.test_run = TestRun.objects.create()
+
+        TestExecution.objects.create(testcase=self.test_case1, run=self.test_run, result="PASS")
+        TestExecution.objects.create(testcase=self.test_case1, run=self.test_run, result="FAIL")
+        TestExecution.objects.create(testcase=self.test_case2, run=self.test_run, result="SKIPPED")
+
+    def test_health_overview(self):
+        # Mark the test run as unpublished
+        self.test_run.published = False
+        self.test_run.save()
+
+        # Health overview should return an empty result since the test run is unpublished
+        result = get_test_health_overview()
+        self.assertEqual(result, {})
+        
+        # Mark the test run as published
+        self.test_run.published = True
+        self.test_run.save()
+
+        # Now, the results should be calculated correctly
+        result = get_test_health_overview()
+        self.assertEqual(result, {"PASS": 1, "FAIL": 1, "SKIPPED": 1})
+
+    def test_frequent_failures(self):
+        # Mark the test run as unpublished
+        self.test_run.published = False
+        self.test_run.save()
+
+        # Frequent failures should return an empty result
+        result = get_frequent_failures()
+        self.assertEqual(result, [])
+
+        # Mark the test run as published
+        self.test_run.published = True
+        self.test_run.save()
+
+        # Now, the frequent failures should return results correctly
+        result = get_frequent_failures()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["testcase__name"], "Login Test")
+        self.assertEqual(result[0]["failures"], 1)
+
+class Test_MetricsAPI(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="testuser", password="password")
+        self.client.login(username="testuser", password="password")
+
+        # Create sample test cases and executions
+        self.test_case1 = TestCase.objects.create(name="Login Test")
+        self.test_case2 = TestCase.objects.create(name="Signup Test")
+        self.test_run = TestRun.objects.create()
+
+        TestExecution.objects.create(testcase=self.test_case1, run=self.test_run, result="PASS")
+        TestExecution.objects.create(testcase=self.test_case1, run=self.test_run, result="FAIL")
+        TestExecution.objects.create(testcase=self.test_case2, run=self.test_run, result="SKIPPED")
+    
+    def test_test_health_overview(self):
+        response = self.client.get("/tests/metrics/test-health-overview/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("PASS", response.data)
+        self.assertIn("FAIL", response.data)
+    
+    def test_frequent_failures(self):
+        response = self.client.get("/tests/metrics/frequent-failures/?limit=3")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(isinstance(response.data, list))
+    
+    def test_latest_test_run_summary(self):
+        response = self.client.get("/tests/metrics/latest-test-run-summary/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(isinstance(response.data, list))

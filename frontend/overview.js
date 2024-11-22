@@ -2,10 +2,13 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import OverviewPage from "./components/OverviewPage";
 
-// Entry point for the React application
 const App = () => {
-  return <OverviewPage />;
+  return (
+    <div>
+      <OverviewPage />
+    </div>
+  );
 };
 
-const root = createRoot(document.getElementById("app")); // The div where the React app will mount
+const root = createRoot(document.getElementById("overview-root"));
 root.render(<App />);

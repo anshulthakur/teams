@@ -40,5 +40,9 @@ urlpatterns = [
     path('notifications/mark-all-read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('<str:object_type>/<int:object_id>/subscribe/<str:event_type>/', views.subscribe_to_event, name='subscribe_to_event'),
     path('<str:object_type>/<int:object_id>/unsubscribe/<str:event_type>/', views.unsubscribe_from_event, name='unsubscribe_from_event'),
+    path("metrics/test-health-overview/", views.TestHealthOverviewView.as_view(), name="test_health_overview"),
+    path("metrics/frequent-failures/", views.FrequentFailuresView.as_view(), name="frequent_failures"),
+    path("metrics/latest-test-run-summary/", views.LatestTestRunSummaryView.as_view(), name="latest_test_run_summary"),
+    path("metrics/stable-unstable-tests/", views.StableUnstableTestsView.as_view(), name="stable_unstable_tests"),
     path('', views.overview, name='overview'),
 ]

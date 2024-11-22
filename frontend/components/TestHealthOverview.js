@@ -1,37 +1,47 @@
 import React from "react";
-import { PieChart, Pie, Cell, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip } from "recharts";
+const COLORS = {
+  PASS: "#28a745", // Green for success
+  FAIL: "#dc3545", // Red for failures
+  SKIPPED: "#ffc107", // Yellow for skipped
+  ERROR: "#6c757d", // Grey for errors
+};
 
-const TestHealthOverview = () => {
-  // Placeholder percentages
-  const data = [
-    { name: "Pass", value: 70 },
-    { name: "Fail", value: 20 },
-    { name: "Skipped", value: 10 },
-  ];
-
-  const COLORS = ["#28a745", "#dc3545", "#ffc107"];
+const TestHealthOverview = ({ data }) => {
+  const chartData = Object.entries(data).map(([key, value]) => ({ name: key, value }));
 
   return (
-    <div className="card my-3">
-      <div className="card-header">Test Health Overview</div>
-      <div className="card-body d-flex justify-content-center">
-        <PieChart width={400} height={300}>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            outerRadius={100}
-            fill="#8884d8"
-            dataKey="value"
-            label
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </PieChart>
+    <div>
+      <h2>Test Health Overview (Lifetime)</h2>
+      <div className="row">
+        <div className="col-md-6">
+          <PieChart width={400} height={300}>
+            <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100}>
+              {chartData.map((entry) => (
+                <Cell key={entry.name} fill={COLORS[entry.name] || "#8884d8"} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </div>
+        <div className="col-md-6">
+          <table className="table table-bordered">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              {chartData.map((entry) => (
+                <tr key={entry.name}>
+                  <td>{entry.name}</td>
+                  <td>{entry.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
