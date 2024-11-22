@@ -1,95 +1,92 @@
-<div class="container mt-5">
-    <!-- Filtering and Sorting Options -->
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <input type="text" id="search-bar" class="form-control" 
-                   placeholder="Search Test Cases"
-                   value="{% if search_query %}{{ search_query }}{% endif %}"
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Name / OID</th>
+            <th>Last Modified</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="test-case-list">
+        {% for test_case in test_cases %}
+        <tr id="test-case-{{ test_case.id }}">
+            <td>
+                <span class="d-block">
+                    <a href="{% url 'teams_core:test_case_detail' test_case.id %}">{{ test_case.name }}</a>
+                </span>
+                <span class="d-block">{{ test_case.oid }}</span>
+            </td>
+            <td>{{ test_case.last_modified|date:"M d, Y H:i" }}</td>
+            <td>
+                <a href="{% url 'teams_core:test_case_detail' test_case.id %}" class="btn btn-info">View</a>
+                <a href="{% url 'teams_core:test_case_edit' test_case.id %}" class="btn btn-secondary">Edit</a>
+                <button class="btn btn-danger"
+                        hx-delete="{% url 'teams_core:testcase-detail' test_case.id %}"
+                        hx-confirm="Are you sure you want to delete this test case?">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No test cases found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if test_cases.has_previous %}
+            <li class="page-item">
+                <a class="page-link" 
                    hx-get="{% url 'teams_core:test_case_list' %}"
-                   hx-trigger="keyup changed delay:500ms"
                    hx-target="#test-case-list"
                    hx-push-url="true"
-                   hx-vals='{"name": this.value, "sort": "{{ current_sort }}", "order": "{{ current_order }}"}'
-                   oninput="this.setAttribute('hx-vals', JSON.stringify({name: this.value, sort: '{{ current_sort }}', order: '{{ current_order }}'}))">
-        </div>
-
-        <div class="col-md-6 d-flex align-items-center justify-content-end">
-            <!-- Sorting Options -->
-            <label for="sort-options" class="form-label me-2 mb-0">Sort By:</label>
-            <select id="sort-options" class="form-select w-auto me-3"
-                    hx-get="{% url 'teams_core:test_case_list' %}"
-                    hx-target="#test-case-list"
-                    hx-push-url="true"
-                    onchange="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: this.value, order: '{{ current_order }}'}))">
-                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name</option>
-                <option value="oid" {% if current_sort == 'oid' %}selected{% endif %}>OID</option>
-                <option value="modify" {% if current_sort == 'modify' %}selected{% endif %}>Last Modified</option>
-            </select>
-
-            <!-- Sorting Order (Arrows) -->
-            <div class="d-flex align-items-center">
-                <a href="#"
-                   hx-get="{% url 'teams_core:test_case_list' %}"
-                   hx-target="#test-case-list"
-                   hx-push-url="true"
-                   onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: document.getElementById('sort-options').value, order: 'asc'}))"
-                   class="me-1">
-                    <i class="bi bi-caret-up-fill {% if current_order == 'asc' %}text-secondary{% else %}text-primary{% endif %}"></i>
+                   hx-vals='{"name": "{{ search_query }}", "sort": "{{ current_sort }}", "order": "{{ current_order }}", "page_size": "{{ page_size }}", "page": "{{ test_cases.previous_page_number }}"}'>
+                    Previous
                 </a>
-                <a href="#"
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+        
+        {% for page_num in test_cases.paginator.page_range %}
+            <li class="page-item {% if page_num == test_cases.number %}active{% endif %}">
+                <a class="page-link" 
                    hx-get="{% url 'teams_core:test_case_list' %}"
                    hx-target="#test-case-list"
                    hx-push-url="true"
-                   onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: document.getElementById('sort-options').value, order: 'desc'}))">
-                    <i class="bi bi-caret-down-fill {% if current_order == 'desc' %}text-secondary{% else %}text-primary{% endif %}"></i>
+                   hx-vals='{"name": "{{ search_query }}", "sort": "{{ current_sort }}", "order": "{{ current_order }}", "page_size": "{{ page_size }}", "page": "{{ page_num }}"}'>
+                    {{ page_num }}
                 </a>
-            </div>
-        </div>
-    </div>
+            </li>
+        {% endfor %}
+        
+        {% if test_cases.has_next %}
+            <li class="page-item">
+                <a class="page-link" 
+                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-target="#test-case-list"
+                   hx-push-url="true"
+                   hx-vals='{"name": "{{ search_query }}", "sort": "{{ current_sort }}", "order": "{{ current_order }}", "page_size": "{{ page_size }}", "page": "{{ test_cases.next_page_number }}"}'>
+                    Next
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+    </ul>
+</nav>
 
-    <!-- Test Cases Table -->
-    <table class="table table-bordered table-hover">
-        <thead>
-            <tr>
-                <th>Name / OID</th>
-                <th>Last Modified</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="test-case-list">
-            {% for test_case in test_cases %}
-            <tr id="test-case-{{ test_case.id }}">
-                <td>
-                    <span class="d-block">
-                        <a href="{% url 'teams_core:test_case_detail' test_case.id %}">{{ test_case.name }}</a>
-                    </span>
-                    <span class="d-block">{{ test_case.oid }}</span>
-                </td>
-                <td>{{ test_case.last_modified|date:"M d, Y H:i" }}</td>
-                <td>
-                    <a href="{% url 'teams_core:test_case_detail' test_case.id %}" class="btn btn-info">View</a>
-                    <a href="{% url 'teams_core:test_case_edit' test_case.id %}" class="btn btn-secondary">Edit</a>
-                    <button class="btn btn-danger"
-                            hx-delete="{% url 'teams_core:testcase-detail' test_case.id %}"
-                            hx-confirm="Are you sure you want to delete this test case?">
-                        Delete
-                    </button>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3">No test cases found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <script defer>
-        document.addEventListener('htmx:afterRequest', function(event) {
-            // If the request was a delete and target is a table row, remove the row
-            if (event.detail.requestConfig.verb === 'delete' && event.detail.target.closest('tr')) {
-                event.detail.target.closest('tr').remove();
-            }
-        });
-    </script>
-</div>
+<!-- HTMX afterRequest Handler -->
+<script defer>
+    document.addEventListener('htmx:afterRequest', function(event) {
+        // Handle removal of table rows after delete
+        if (event.detail.requestConfig.verb === 'delete' && event.detail.target.closest('tr')) {
+            const row = event.detail.target.closest('tr');
+            row.classList.add('fade-out');
+            setTimeout(() => row.remove(), 300); // Matches transition duration
+        }
+    });
+</script>

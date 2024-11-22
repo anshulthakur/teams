@@ -33,42 +33,59 @@ from teams_core.serializers import TestCaseSerializer, TestRunSerializer, TestEx
 
 from notifications.models import Notification
 from django.contrib.contenttypes.models import ContentType
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .utils import add_subscription, remove_subscription
 
 from .export import generate_docx, generate_pdf
 
-def test_case_list(request):
-    query = request.GET.get('name')
-    sorting = request.GET.get('sort', 'modify')  # Default to sorting by last modified
-    order = request.GET.get('order', 'desc')  # Default to descending
 
-    if sorting == 'modify': #handle a minor transformation
+
+def test_case_list(request):
+    query = request.GET.get('name', '')  # Get search query
+    sorting = request.GET.get('sort', 'modify')  # Default sorting by last modified
+    order = request.GET.get('order', 'desc')  # Default order descending
+    page_size = request.GET.get('page_size', 25)  # Default page size
+    page = request.GET.get('page', 1)  # Current page
+
+    # Handle minor transformation for sorting
+    if sorting == 'modify':
         sorting = 'last_modified'
     ordering = f"{'-' if order == 'desc' else ''}{sorting}"
 
+    # Filter and sort test cases
     test_cases = TestCase.objects.all().order_by(ordering)
-
-    # Filter by search query if provided
     if query:
         test_cases = test_cases.filter(Q(name__icontains=query) | Q(oid__icontains=query))
 
-    # Render only the table if the request is from HTMX
+    # Paginate the test cases
+    paginator = Paginator(test_cases, int(page_size) if page_size != 'all' else test_cases.count())
+    try:
+        test_cases = paginator.page(page)
+    except PageNotAnInteger:
+        test_cases = paginator.page(1)
+    except EmptyPage:
+        test_cases = paginator.page(paginator.num_pages)
+
+    # HTMX requests should return the table body only
     if request.headers.get('HX-Request') == 'true':
         return render(request, 'test_case/_test_case_table.html', {
             'test_cases': test_cases,
             'search_query': query,
             'current_sort': sorting,
-            'current_order': order
+            'current_order': order,
+            'page_size': page_size,
         })
 
-    # Render the full page for non-HTMX requests
+    # Non-HTMX requests render the full page
     return render(request, 'test_case/test_case_list.html', {
         'test_cases': test_cases,
         'search_query': query,
         'current_sort': sorting,
-        'current_order': order
+        'current_order': order,
+        'page_size': page_size,
     })
+
 
 def test_case_detail(request, id):
     

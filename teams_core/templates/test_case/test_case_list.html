@@ -12,6 +12,67 @@
     </div>
 
     <!-- Main table container to be replaced by HTMX requests -->
+     <!-- Filtering, Sorting, and Page Size -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" id="search-bar" class="form-control"
+                   placeholder="Search Test Cases"
+                   value="{% if search_query %}{{ search_query }}{% endif %}"
+                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#test-case-list"
+                   hx-push-url="true"
+                   hx-vals='{"name": this.value, "sort": "{{ current_sort }}", "order": "{{ current_order }}", "page_size": "{{ page_size }}"}'
+                   oninput="this.setAttribute('hx-vals', JSON.stringify({name: this.value, sort: '{{ current_sort }}', order: '{{ current_order }}', page_size: '{{ page_size }}'}))">
+        </div>
+
+        <div class="col-md-6 d-flex align-items-center justify-content-end">
+            <label for="sort-options" class="form-label me-2 mb-0">Sort By:</label>
+            <select id="sort-options" class="form-select w-auto me-3"
+                    hx-get="{% url 'teams_core:test_case_list' %}"
+                    hx-target="#test-case-list"
+                    hx-push-url="true"
+                    onchange="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: this.value, order: '{{ current_order }}', page_size: '{{ page_size }}'}))">
+                <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name</option>
+                <option value="oid" {% if current_sort == 'oid' %}selected{% endif %}>OID</option>
+                <option value="modify" {% if current_sort == 'modify' %}selected{% endif %}>Last Modified</option>
+            </select>
+
+            <!-- Sorting Order -->
+            <div class="d-flex align-items-center">
+                <a href="#"
+                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-target="#test-case-list"
+                   hx-push-url="true"
+                   onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: document.getElementById('sort-options').value, order: 'asc', page_size: '{{ page_size }}'}))"
+                   class="me-1">
+                    <i class="bi bi-caret-up-fill {% if current_order == 'asc' %}text-secondary{% else %}text-primary{% endif %}"></i>
+                </a>
+                <a href="#"
+                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-target="#test-case-list"
+                   hx-push-url="true"
+                   onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: document.getElementById('sort-options').value, order: 'desc', page_size: '{{ page_size }}'}))">
+                    <i class="bi bi-caret-down-fill {% if current_order == 'desc' %}text-secondary{% else %}text-primary{% endif %}"></i>
+                </a>
+            </div>
+
+            <!-- Page Size Selection -->
+            <label for="page-size" class="form-label me-2 mb-0">Page Size:</label>
+            <select id="page-size" class="form-select w-auto"
+                    hx-get="{% url 'teams_core:test_case_list' %}"
+                    hx-target="#test-case-list"
+                    hx-push-url="true"
+                    onchange="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: '{{ current_sort }}', order: '{{ current_order }}', page_size: this.value}))">
+                <option value="25" {% if page_size == '25' %}selected{% endif %}>25</option>
+                <option value="50" {% if page_size == '50' %}selected{% endif %}>50</option>
+                <option value="100" {% if page_size == '100' %}selected{% endif %}>100</option>
+                <option value="all" {% if page_size == 'all' %}selected{% endif %}>All</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Test Cases Table -->
     <div id="test-case-list" class="mt-5">
         {% include 'test_case/_test_case_table.html' %}
     </div>
