@@ -37,6 +37,7 @@ urlpatterns = [
     path('notifications/', views.all_notifications, name='all_notifications'),
     path('notifications/mark-as-read/<int:notification_id>/', views.mark_notification_as_read, name='mark_notification_as_read'),
     path('notifications/delete/<int:notification_id>/', views.delete_notification, name='delete_notification'),
+    path('notifications/delete-selected/', views.delete_selected_notifications, name='delete_selected_notifications'),
     path('notifications/mark-all-read/', views.mark_notifications_read, name='mark_notifications_read'),
     path('<str:object_type>/<int:object_id>/subscribe/<str:event_type>/', views.subscribe_to_event, name='subscribe_to_event'),
     path('<str:object_type>/<int:object_id>/unsubscribe/<str:event_type>/', views.unsubscribe_from_event, name='unsubscribe_from_event'),

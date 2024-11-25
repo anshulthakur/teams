@@ -241,6 +241,12 @@ def delete_notification(request, notification_id):
     notification.delete()
     return redirect('teams_core:all_notifications')
 
+@login_required
+def delete_selected_notifications(request):
+    if request.method == "POST":
+        notification_ids = request.POST.getlist('notifications')
+        Notification.objects.filter(id__in=notification_ids, recipient=request.user).delete()
+    return redirect('teams_core:all_notifications')
 
 @login_required
 def subscribe_to_event(request, object_type, object_id, event_type):
