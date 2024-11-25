@@ -198,3 +198,6 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = False
 # EMAIL_HOST_USER = 'athakur@cdot.in'
 # EMAIL_HOST_PASSWORD = ''
+
+TEAMS_ADMIN_MAIL = 'athakur@cdot.in'
+TEAMS_HOST_URL = 'http://192.168.3.82/'
