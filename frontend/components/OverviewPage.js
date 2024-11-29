@@ -41,9 +41,9 @@ const OverviewPage = () => {
   return (
     <div>
       <h1 class="pb-2 mb-2">Testing at a glance</h1>
+      <LatestTestRunSummary data={latestRuns} />
       <TestHealthOverview data={testHealth} />
       <FrequentFailures data={frequentFailures} />
-      <LatestTestRunSummary data={latestRuns} />
       <StableUnstableTests data={stableUnstableTests} />
     </div>
   );

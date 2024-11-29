@@ -320,6 +320,120 @@ class Test_TestRunAPI(APITestCase):
         response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+class Test_Subscriptions(APITestCase):
+    def setUp(self):
+        # Create a user
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.force_authenticate(user=self.user)
+        
+        # Create a TestSuite
+        self.test_suite = TestSuite.objects.create(name="Suite 1", author=self.user)
+        
+        # Create a TestCase
+        self.test_case = TestCase.objects.create(name="Test Case 1", oid="TC001", author=self.user)
+        
+        # Add TestCase to TestSuite
+        self.test_suite.testcase_set.add(self.test_case)
+
+    def test_subscribe_author_to_testcase(self):
+        """
+        Test that the author is subscribed to failure notifications
+        """
+        subscription_exists = Subscription.objects.filter(
+            user=self.user,
+            event_type='TEST_EXECUTION_FAIL',
+            content_type=ContentType.objects.get_for_model(TestCase),
+            object_id=self.test_case.id
+        ).exists()
+        self.assertTrue(subscription_exists, "Author is not subscribed to the test case for failure notifications.")
+
+    def test_subscribe_author_update_to_testcase(self):
+        """
+        Test that the new author is subscribed to failure notifications when authorship of 
+        test case is changed.
+        """
+        new_author = User.objects.create_user(username='new_author', password='password')
+        self.test_case.author = new_author
+        self.test_case.save()
+        
+        subscription_exists = Subscription.objects.filter(
+            user=new_author,
+            event_type='TEST_EXECUTION_FAIL',
+            content_type=ContentType.objects.get_for_model(TestCase),
+            object_id=self.test_case.id
+        ).exists()
+        self.assertTrue(subscription_exists, "New author is not subscribed to the test case for failure notifications.")
+
+    def test_subscribe_maintainer_to_testcase(self):
+        """
+        Test that the newly added maintainer is subscribed to failure notifications
+        """
+        maintainer = User.objects.create_user(username='maintainer', password='password')
+        self.test_case.maintainers.add(maintainer)
+
+        subscription_exists = Subscription.objects.filter(
+            user=maintainer,
+            event_type='TEST_EXECUTION_FAIL',
+            content_type=ContentType.objects.get_for_model(TestCase),
+            object_id=self.test_case.id
+        ).exists()
+        self.assertTrue(subscription_exists, "Maintainer is not subscribed to the test case for failure notifications.")
+
+    def test_subscribe_author_to_testsuite(self):
+        """
+        Test that the author is subscribed to failure notifications of all test cases
+        in the test suite for existing tests
+        """
+        subscriptions = Subscription.objects.filter(
+            user=self.user,
+            event_type='TEST_EXECUTION_FAIL',
+            content_type=ContentType.objects.get_for_model(TestCase),
+            object_id__in=self.test_suite.testcase_set.values_list('id', flat=True)
+        )
+        self.assertEqual(subscriptions.count(), self.test_suite.testcase_set.count(), "Author is not subscribed to all test cases in the test suite.")
+
+    def test_subscribe_testsuite_testcase_added_later(self):
+        """
+        Test that the author is subscribed to failure notifications of all test cases
+        that are added after they subscribed to test suite
+        """
+        new_test_case = TestCase.objects.create(name="New Test Case", oid="TC002", author=self.user)
+        self.test_suite.testcase_set.add(new_test_case)
+
+        subscription_exists = Subscription.objects.filter(
+            user=self.user,
+            event_type='TEST_EXECUTION_FAIL',
+            content_type=ContentType.objects.get_for_model(TestCase),
+            object_id=new_test_case.id
+        ).exists()
+        self.assertTrue(subscription_exists, "Author is not subscribed to new test cases added to the test suite.")
+
+    def test_nonauthor_subscribe_testsuite_testcase_added_later(self):
+        """
+        Test that users subscribed to a TestSuite are automatically subscribed to
+        any new TestCase added to the suite.
+        """
+        # Create a user and a test suite
+        user = User.objects.create_user(username="suite_subscriber", password="password")
+        test_suite = TestSuite.objects.create(name="Sample Suite")
+        
+        # Subscribe the user to the test suite
+        add_subscription(user, "TEST_EXECUTION_FAIL", test_suite)
+
+        # Create a new test case and add it to the test suite
+        test_case = TestCase.objects.create(name="New TestCase", oid="TC123")
+        test_suite.testcase_set.add(test_case)
+
+        # Check if the user is subscribed to the new test case
+        case_subscribed = Subscription.objects.filter(
+            user=user,
+            content_type=ContentType.objects.get_for_model(TestCase),
+            object_id=test_case.id,
+            event_type="TEST_EXECUTION_FAIL",
+            active=True
+        ).exists()
+
+        self.assertTrue(case_subscribed, "The user should be subscribed to the new TestCase.")
 
 class Test_NotificationSummary(APITestCase):
 
