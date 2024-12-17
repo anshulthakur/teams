@@ -2,7 +2,6 @@ asgiref==3.8.1
 Django==5.1.1
 django-filter==24.3
 djangorestframework==3.15.2
-Markdown==3.7
 sqlparse==0.5.1
 django-htmx==1.21.0
 djangorestframework-simplejwt==5.3.1
@@ -12,3 +11,4 @@ django-notifications-hq @ git+https://github.com/Naggafin/django-notifications@1
 python-ldap
 django-auth-ldap
 django-webpack-loader
+markdown2[all]

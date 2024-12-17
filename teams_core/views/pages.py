@@ -1,4 +1,5 @@
 import json
+from markdown2 import markdown
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
@@ -18,6 +19,19 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from teams_core.utils import add_subscription, remove_subscription
 from teams_core.export import generate_docx, generate_pdf
+
+def render_markdown_recursive(data):
+    """
+    Recursively render Markdown strings in a nested dictionary or list using markdown2.
+    """
+    if isinstance(data, dict):
+        return {key: render_markdown_recursive(value) for key, value in data.items()}
+    elif isinstance(data, list):
+        return [render_markdown_recursive(item) for item in data]
+    elif isinstance(data, str):
+        # Convert Markdown to HTML with extras
+        return markdown(data, extras=["fenced-code-blocks", "tables", "strike", "underline"])
+    return data  # Return as-is for other data types
 
 def overview(request):
     return render(request, 'overview.html', {})
@@ -73,13 +87,17 @@ def test_case_detail(request, id):
     
     test_case = TestCase.objects.get(pk=id)
 
-    if test_case.content != None:
-        if len(test_case.content)>0:
-            content = json.loads(test_case.content)
-        else:
-            content = ''
+    # Load and process the JSON content if it exists
+    if test_case.content:
+        try:
+            raw_content = json.loads(test_case.content)
+            # Process Markdown recursively
+            content = render_markdown_recursive(raw_content)
+        except (json.JSONDecodeError, TypeError) as e:
+            content = {}  # Fallback to empty content in case of an error
+            print(f"Error decoding content for TestCase {test_case.id}: {e}")
     else:
-        content = ''
+        content = {}
 
     # Fetch execution history for the test case
     test_executions = TestExecution.objects.filter(testcase=test_case).order_by('-date')

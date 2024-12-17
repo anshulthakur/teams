@@ -15,7 +15,9 @@
     <h2>Identifier: {{ object.oid }}</h2>
     <section>
         <h3>Description</h3>
-        <p>{{ content.description }}</p>
+        <p class="markdown-content">
+            {{ content.description|safe }} <!-- Render the HTML content safely -->
+        </p>
     </section>
 
     {% for step, details in content.proceduralSteps.items %}
@@ -31,8 +33,8 @@
             <tbody>
                 {% for detail in details %}
                 <tr>
-                    <td>{{ detail.stepDescription }}</td>
-                    <td>{{ detail.expectedOutput }}</td>
+                    <td class="markdown-content">{{ detail.stepDescription|safe }}</td>
+                    <td class="markdown-content">{{ detail.expectedOutput|safe }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
