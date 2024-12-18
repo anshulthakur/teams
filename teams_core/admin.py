@@ -1,9 +1,10 @@
 from django.contrib import admin
+from reversion.admin import VersionAdmin
 
 from .models import TestCase, TestExecution, TestRun, TestSuite, Subscription
 
 # Register your models here.
-class TestCaseAdmin(admin.ModelAdmin):
+class TestCaseAdmin(VersionAdmin):
     search_fields = ["name", "oid"]
 admin.site.register(TestCase, TestCaseAdmin)
 

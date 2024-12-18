@@ -2,6 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from teams_core.models import Subscription
 from django.contrib.auth.models import User
 from .models import Subscription, TestCase, TestSuite
+from reversion import create_revision
 
 def add_subscription(user, event_type, obj):
     """Add or reactivate a subscription for a user to a specific event and object."""
@@ -60,3 +61,17 @@ def get_active_subscribers(event_type, obj):
         subscriptions__object_id=obj.id,
         subscriptions__active=True
     )
+
+def increment_version(version_str):
+    """
+    Increment a semantic version string (e.g., 1.0 -> 1.1).
+    """
+    major, minor = map(int, version_str.split("."))
+    return f"{major}.{minor + 1}"
+
+def create_new_version(test_case, request_user, version_comment="New version created"):
+    with create_revision():
+        test_case.version = increment_version(test_case.version)
+        test_case.save()
+        create_revision().set_user(request_user)
+        create_revision().set_comment(version_comment)

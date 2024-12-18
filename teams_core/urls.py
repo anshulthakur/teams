@@ -21,6 +21,7 @@ urlpatterns = [
     path('test-cases/<int:id>/', views.test_case_detail, name='test_case_detail'),
     path('test-cases/<int:id>/export/<str:format_type>/', views.export_testcase, name='export_testcase'),
     path('test-cases/edit/<int:id>/', views.test_case_edit, name='test_case_edit'),
+    path('test-cases/version/<int:id>/', views.version_test_case, name='version_test_case'),
     path('test-suites/', views.test_suite_list, name='test_suite_list'),
     path('test-suites/create/', views.test_suite_create, name='test_suite_create'),
     path('test-suites/<int:id>/', views.test_suite_detail, name='test_suite_detail'),

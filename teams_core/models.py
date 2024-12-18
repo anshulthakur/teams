@@ -8,6 +8,8 @@ from django.urls import reverse
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 from django.db.models import Sum
+import reversion
+
 
 class TestSuite(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
@@ -22,6 +24,7 @@ class TestSuite(models.Model):
     def get_absolute_url(self):
         return reverse('teams_core:test_suite_detail', args=[str(self.id)])
 
+@reversion.register()
 class TestCase(models.Model):
     name = models.CharField(max_length=255, blank=False, null=False)
     oid = models.CharField(max_length=1024, blank=True, null=True, unique=True)

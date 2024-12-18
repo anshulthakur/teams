@@ -6,6 +6,9 @@
 <div class="container mt-5">
     <div class="export-buttons mt-3">
         <a href="{% url 'teams_core:test_case_edit' object.id %}" class="btn btn-secondary">Edit</a>
+        <a href="{% url 'teams_core:version_test_case' object.id %}" class="btn btn-success">
+            Finalize Version
+        </a>
         <a href="{% url 'teams_core:export_testcase' object.id 'docx' %}" class="btn btn-primary">Export as DOCX</a>
         {% comment %} <a href="{% url 'teams_core:export_testcase' object.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
         {% include 'subscription/subscribe.html' %}

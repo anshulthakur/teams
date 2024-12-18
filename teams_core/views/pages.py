@@ -20,6 +20,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from teams_core.utils import add_subscription, remove_subscription
 from teams_core.export import generate_docx, generate_pdf
 
+from teams_core.utils import create_new_version
+
 def render_markdown_recursive(data):
     """
     Recursively render Markdown strings in a nested dictionary or list using markdown2.
@@ -107,6 +109,15 @@ def test_case_detail(request, id):
         'content': content,
         'test_executions': test_executions
     })
+
+@login_required
+def version_test_case(request, id):
+    """
+    Explicitly create a new version of the test case.
+    """
+    test_case = get_object_or_404(TestCase, pk=id)
+    create_new_version(test_case, request.user, version_comment="User finalized version")
+    return redirect(test_case.get_absolute_url())
 
 @login_required
 def test_case_create(request):

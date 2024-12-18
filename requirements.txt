@@ -12,3 +12,4 @@ python-ldap
 django-auth-ldap
 django-webpack-loader
 markdown2[all]
+django-reversion
