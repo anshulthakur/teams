@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from teams_core.models import Subscription
 from django.contrib.auth.models import User
 from .models import Subscription, TestCase, TestSuite
-from reversion import create_revision
+from reversion import create_revision, set_user, set_comment
 
 def add_subscription(user, event_type, obj):
     """Add or reactivate a subscription for a user to a specific event and object."""
@@ -73,5 +73,6 @@ def create_new_version(test_case, request_user, version_comment="New version cre
     with create_revision():
         test_case.version = increment_version(test_case.version)
         test_case.save()
-        create_revision().set_user(request_user)
-        create_revision().set_comment(version_comment)
+        # Set user and comment for the revision
+        set_user(request_user)
+        set_comment(version_comment)

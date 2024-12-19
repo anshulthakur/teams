@@ -22,6 +22,9 @@ from datetime import timedelta
 
 from teams_core.metrics import *
 
+from reversion.models import Version
+from teams_core.utils import create_new_version
+
 User = get_user_model()
 
 # Create your tests here.
@@ -572,3 +575,102 @@ class Test_MetricsAPI(APITestCase):
         response = self.client.get("/tests/metrics/latest-test-run-summary/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(isinstance(response.data, list))
+
+class Test_Revisions(APITestCase):
+    def setUp(self):
+        # Create a test user
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+        
+        # Log in the user
+        self.client.login(username="testuser", password="testpassword")
+        
+        # Create a test case
+        self.test_case = TestCase.objects.create(
+            name="Sample Test Case",
+            oid="TC001",
+            author=self.user,
+            content="This is the initial content of the test case."
+        )
+
+    def tearDown(self):
+        User.objects.all().delete()
+        TestCase.objects.all().delete()
+
+    def test_create_revision(self):
+        """
+        Test that a new revision is created when explicitly requested.
+        """
+        # Call the create_new_version function
+        create_new_version(self.test_case, self.user, version_comment="First version finalized.")
+        
+        # Ensure a revision was created
+        versions = Version.objects.get_for_object(self.test_case)
+        self.assertEqual(versions.count(), 1)
+        self.assertEqual(versions[0].revision.comment, "First version finalized.")
+        self.assertEqual(versions[0].revision.user, self.user)
+
+        # Ensure the content matches the saved content
+        self.assertEqual(versions[0].field_dict['content'], self.test_case.content)
+
+    def test_open_previous_revision(self):
+        """
+        Test that a previous revision can be opened and accessed.
+        """
+        # Create two revisions
+        create_new_version(self.test_case, self.user, version_comment="Version 1")
+        self.test_case.content = "This is version 2 of the test case."
+        create_new_version(self.test_case, self.user, version_comment="Version 2")
+        
+        # Get all versions
+        versions = Version.objects.get_for_object(self.test_case)
+        self.assertEqual(versions.count(), 2)
+
+        # Access the first revision and verify its content
+        first_version = versions.last()
+        self.assertEqual(first_version.field_dict['content'], "This is the initial content of the test case.")
+
+        # Access the second revision and verify its content
+        second_version = versions.first()
+        self.assertEqual(second_version.field_dict['content'], "This is version 2 of the test case.")
+
+    def test_delete_previous_revision(self):
+        """
+        Test that a previous revision can be deleted.
+        """
+        # Create two revisions
+        create_new_version(self.test_case, self.user, version_comment="Version 1")
+        self.test_case.content = "This is version 2 of the test case."
+        create_new_version(self.test_case, self.user, version_comment="Version 2")
+        
+        # Get all versions
+        versions = Version.objects.get_for_object(self.test_case)
+        self.assertEqual(versions.count(), 2)
+
+        # Delete the first version
+        first_version = versions.last()
+        first_version.revision.delete()
+        
+        # Verify the revision count has decreased
+        versions = Version.objects.get_for_object(self.test_case)
+        self.assertEqual(versions.count(), 1)
+
+        # Verify the remaining version is the latest
+        self.assertEqual(versions[0].field_dict['content'], "This is version 2 of the test case.")
+
+    def test_create_revision_via_endpoint(self):
+        """
+        Test that a revision can be created via the versioning endpoint.
+        """
+        url = reverse('teams_core:version_test_case', args=[self.test_case.id])
+        
+        # Send a request to the versioning endpoint
+        response = self.client.get(url)
+        
+        # Ensure the request was successful
+        self.assertEqual(response.status_code, 302)  # Redirect after versioning
+        
+        # Check that the version was created
+        versions = Version.objects.get_for_object(self.test_case)
+        self.assertEqual(versions.count(), 1)
+        self.assertEqual(versions[0].revision.user, self.user)
+        self.assertEqual(versions[0].revision.comment, "User finalized version")
