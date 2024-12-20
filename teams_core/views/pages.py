@@ -94,9 +94,8 @@ def test_case_list(request, user_id=None):
 
     # Filter by user if `user_id` is provided
     if user_id:
-        # Check if the request is made by the same user whose runs are being requested
         requested_user = get_object_or_404(User, pk=user_id)
-        if request.user.is_authenticated and request.user.id == requested_user.id:
+        if request.user.is_authenticated:
             # Show both published and private runs for the logged-in user
             test_cases = test_cases.filter(author=requested_user)
 
