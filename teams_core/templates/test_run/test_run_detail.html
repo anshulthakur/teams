@@ -11,7 +11,7 @@
 <div class="container mt-5">
     <h1>Test Run Detail</h1>
     <h2>Date: {{ test_run.date|date:"M d, Y H:i" }}</h2>
-    <h2>Created By: {{ test_run.created_by.username }}</h2>
+    <h2>Created By: {{ test_run.created_by.get_short_name|default:test_run.created_by.get_username }}</h2>
     <h2>Duration: {{ test_run.get_runtime }}</h2>
     <!-- Table of Test Executions -->
     <section>

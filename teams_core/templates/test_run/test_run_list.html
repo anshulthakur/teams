@@ -30,7 +30,7 @@
                 {% for test_run in test_runs %}
                 <tr id="test-run-{{ test_run.id }}">
                     <td><a href="{% url 'teams_core:test_run_detail' test_run.id %}">{{ test_run.date|date:"M d, Y H:i" }}</a></td>
-                    <td>{{ test_run.created_by.username }}</td>
+                    <td>{{ test_run.created_by.get_short_name|default:test_run.created_by.get_username }}</td>
                     <td>{{ test_run.successful_tests }}/{{ test_run.total_tests_executed }}</td>
                     <td>{{ test_run.notes }}</td>
                     <td>

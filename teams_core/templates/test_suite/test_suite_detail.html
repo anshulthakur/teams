@@ -14,7 +14,7 @@
     <h2>ID: {{ object.id }}</h2>
     <h2>Created on: {{ object.created_on|date:"M d, Y H:i" }}</h2>
     <h2>Last modified: {{ object.last_modified|date:"M d, Y H:i" }}</h2>
-    <h2>Created By: {{ object.author.username }}</h2>
+    <h2>Created By: {{ object.author.get_short_name|default:object.author.get_username }}</h2>
     
     <section>
         <h3>Description</h3>

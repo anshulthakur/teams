@@ -31,7 +31,7 @@
                 <tr id="test-suite-{{ test_suite.id }}">
                     <td><a href="{% url 'teams_core:test_suite_detail' test_suite.id %}">{{ test_suite.name }}</a></td>
                     <td>{{ test_suite.last_modified|date:"M d, Y H:i" }}</td>
-                    <td>{{ test_suite.author.username }}</td>
+                    <td>{{ test_suite.author.get_short_name|default:test_suite.author.get_username }}</td>
                     <td>
                         <a href="{% url 'teams_core:test_suite_edit' test_suite.id %}" class="btn btn-secondary">Edit</a>
                         <button class="btn btn-danger"
