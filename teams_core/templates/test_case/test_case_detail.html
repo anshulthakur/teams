@@ -13,9 +13,10 @@
         {% comment %} <a href="{% url 'teams_core:export_testcase' object.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
         {% include 'subscription/subscribe.html' %}
     </div>
+    <h4>ID: {{ object.id }}</h2>
     <h1>{{ object.name }}</h1>
-    <h2>ID: {{ object.id }}</h2>
-    <h2>Identifier: {{ object.oid }}</h2>
+    <h3>Identifier: {{ object.oid }}</h2>
+    <h3>Author: {{ object.author.get_short_name|default:object.author.get_username }}</h2>
     <section>
         <h3>Description</h3>
         <p class="markdown-content">

@@ -17,6 +17,7 @@ app_name = "teams_core"
 
 urlpatterns = [
     path('test-cases', views.test_case_list, name='test_case_list'),
+    path('test-cases/u/<int:user_id>/', views.test_case_list, name='user_test_case_list'),
     path('test-cases/create/', views.test_case_create, name='test_case_create'),
     path('test-cases/<int:id>/', views.test_case_detail, name='test_case_detail'),
     path('test-cases/<int:id>/export/<str:format_type>/', views.export_testcase, name='export_testcase'),

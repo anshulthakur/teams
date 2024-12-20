@@ -22,6 +22,41 @@ from teams_core.export import generate_docx, generate_pdf
 
 from teams_core.utils import create_new_version
 
+from pygments.formatters import HtmlFormatter
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name, TextLexer
+
+def render_markdown_with_highlighting(markdown_text):
+    """
+    Renders Markdown to HTML using markdown2 and Pygments for syntax highlighting.
+    """
+    def pygments_code_block(code, language):
+        """
+        Custom highlighter using Pygments.
+        """
+        try:
+            lexer = get_lexer_by_name(language)
+        except Exception:
+            lexer = TextLexer()  # Default to plain text
+        formatter = HtmlFormatter(cssclass="codehilite")
+        return highlight(code, lexer, formatter)
+
+    extras = {
+        "code-friendly": True,
+        "fenced-code-blocks": {
+            "css_class": "codehilite",
+            "custom_code_highlight": pygments_code_block
+        },
+        "cuddled-lists": True,
+        "tables": True, 
+        "strike": True, 
+        "underline": True
+    }
+
+    html = markdown(markdown_text, extras=extras)
+    return html
+
+
 def render_markdown_recursive(data):
     """
     Recursively render Markdown strings in a nested dictionary or list using markdown2.
@@ -32,14 +67,15 @@ def render_markdown_recursive(data):
         return [render_markdown_recursive(item) for item in data]
     elif isinstance(data, str):
         # Convert Markdown to HTML with extras
-        return markdown(data, extras=["fenced-code-blocks", "tables", "strike", "underline"])
+        #return markdown(data, extras=["fenced-code-blocks", "tables", "strike", "underline"])
+        return render_markdown_with_highlighting(data)
     return data  # Return as-is for other data types
 
 def overview(request):
     return render(request, 'overview.html', {})
 
 
-def test_case_list(request):
+def test_case_list(request, user_id=None):
     query = request.GET.get('name', '')  # Get search query
     sorting = request.GET.get('sort', 'modify')  # Default sorting by last modified
     order = request.GET.get('order', 'desc')  # Default order descending
@@ -55,6 +91,14 @@ def test_case_list(request):
     test_cases = TestCase.objects.all().order_by(ordering)
     if query:
         test_cases = test_cases.filter(Q(name__icontains=query) | Q(oid__icontains=query))
+
+    # Filter by user if `user_id` is provided
+    if user_id:
+        # Check if the request is made by the same user whose runs are being requested
+        requested_user = get_object_or_404(User, pk=user_id)
+        if request.user.is_authenticated and request.user.id == requested_user.id:
+            # Show both published and private runs for the logged-in user
+            test_cases = test_cases.filter(author=requested_user)
 
     # Paginate the test cases
     paginator = Paginator(test_cases, int(page_size) if page_size != 'all' else test_cases.count())

@@ -23,6 +23,7 @@
     <!-- Custom CSS (if needed) -->
     <!--<link href="{% static 'css/styles.css' %}" rel="stylesheet"> -->
     <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    <link href="{% static 'css/pygments.css' %}" rel="stylesheet">
     {% endblock %}
 </head>
 <body>
@@ -71,8 +72,15 @@
                                 <li>
                                     <form id="logout-form" method="POST" action="{% url 'logout' %}">
                                         {% csrf_token %}
-                                        <button type="submit" class="dropdown-item">Logout</button>
+                                        <button class="dropdown-item" type="submit" class="dropdown-item">Logout</button>
                                     </form>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'teams_core:user_test_run_list' user.id %}">My Test Runs</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'teams_core:user_test_case_list' user.id %}">My Test Cases</a>
                                 </li>
                             </ul>
                         </li>
