@@ -10,12 +10,13 @@
         {% comment %} <a href="{% url 'teams_core:export_testsuite' object.id 'pdf' %}" class="btn btn-secondary">Export as PDF</a> {% endcomment %}
         {% include 'subscription/subscribe.html' %}
     </div>
-    <h1>{{ object.name }}</h1>
-    <h2>ID: {{ object.id }}</h2>
-    <h2>Created on: {{ object.created_on|date:"M d, Y H:i" }}</h2>
-    <h2>Last modified: {{ object.last_modified|date:"M d, Y H:i" }}</h2>
-    <h2>Created By: {{ object.author.get_short_name|default:object.author.get_username }}</h2>
-    
+    <section>
+        <h1>{{ object.name }}</h1>
+        <h2>ID: {{ object.id }}</h2>
+        <h2>Created on: {{ object.created_on|date:"M d, Y H:i" }}</h2>
+        <h2>Last modified: {{ object.last_modified|date:"M d, Y H:i" }}</h2>
+        <h2>Created By: {{ object.author.get_short_name|default:object.author.get_username }}</h2>
+    </section>
     <section>
         <h3>Description</h3>
         <p>{{ object.content }}</p>

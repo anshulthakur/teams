@@ -10,7 +10,10 @@
             <input type="text" id="search-bar" class="form-control" placeholder="Search Test Suites"
                    hx-get="{% url 'teams_core:test_suite_list' %}" hx-trigger="keyup changed delay:500ms" hx-target="#test-suite-list">
         </div> -->
-        <div class="col-md-6 text-right">
+        <div class="col-md-6">
+            <h2>Test Suites</h2>
+        </div>
+        <div class="col-md-6 text-end">
             <a href="{% url 'teams_core:test_suite_create' %}" class="btn btn-primary">Create New Test Suite</a>
         </div>
     </div>
