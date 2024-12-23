@@ -21,7 +21,7 @@
             <input type="text" id="search-bar" class="form-control"
                    placeholder="Search Test Cases by Name/OID"
                    value="{% if search_query %}{{ search_query }}{% endif %}"
-                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-get="{{ request.path }}"
                    hx-trigger="keyup changed delay:500ms"
                    hx-target="#test-case-list"
                    hx-push-url="true"
@@ -32,7 +32,7 @@
         <div class="col-md-6 d-flex align-items-center justify-content-end">
             <label for="sort-options" class="form-label me-2 mb-0">Sort By:</label>
             <select id="sort-options" class="form-select w-auto me-3"
-                    hx-get="{% url 'teams_core:test_case_list' %}"
+                    hx-get="{{ request.path }}"
                     hx-target="#test-case-list"
                     hx-push-url="true"
                     onchange="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: this.value, order: '{{ current_order }}', page_size: '{{ page_size }}'}))">
@@ -44,7 +44,7 @@
             <!-- Sorting Order -->
             <div class="d-flex align-items-center">
                 <a href="#"
-                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-get="{{ request.path }}"
                    hx-target="#test-case-list"
                    hx-push-url="true"
                    onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: document.getElementById('sort-options').value, order: 'asc', page_size: '{{ page_size }}'}))"
@@ -52,7 +52,7 @@
                     <i class="bi bi-caret-up-fill {% if current_order == 'asc' %}text-secondary{% else %}text-primary{% endif %}"></i>
                 </a>
                 <a href="#"
-                   hx-get="{% url 'teams_core:test_case_list' %}"
+                   hx-get="{{ request.path }}"
                    hx-target="#test-case-list"
                    hx-push-url="true"
                    onclick="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: document.getElementById('sort-options').value, order: 'desc', page_size: '{{ page_size }}'}))">
@@ -63,7 +63,7 @@
             <!-- Page Size Selection -->
             <label for="page-size" class="form-label me-2 mb-0">Page Size:</label>
             <select id="page-size" class="form-select w-auto"
-                    hx-get="{% url 'teams_core:test_case_list' %}"
+                    hx-get="{{ request.path }}"
                     hx-target="#test-case-list"
                     hx-push-url="true"
                     onchange="this.setAttribute('hx-vals', JSON.stringify({name: document.getElementById('search-bar').value, sort: '{{ current_sort }}', order: '{{ current_order }}', page_size: this.value}))">

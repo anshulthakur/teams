@@ -190,6 +190,36 @@ def test_suite_detail(request, id):
     # Get all test cases in the test suite
     test_cases = testsuite.testcase_set.all()
 
+    # Fetch most recent 'n' test runs that include test cases from this suite
+    recent_test_runs = (
+        TestRun.objects.filter(
+            testexecution__testcase__in=test_cases,
+            published=True  # Only include published test runs
+        )
+        .distinct()  # Avoid duplicate runs
+        .order_by('-date')[:5]  # Limit to 5 most recent runs
+    )
+
+    # Precompute test results for each test run
+    test_run_data = []
+    for test_run in recent_test_runs:
+        test_executions = test_run.testexecution_set.filter(testcase__in=test_cases)
+        test_run_data.append({
+            'test_run': test_run,
+            'total_tests': test_executions.count(),
+            'pass_count': test_executions.filter(result="PASS").count(),
+            'fail_count': test_executions.filter(result="FAIL").count(),
+            'skipped_count': test_executions.filter(result="SKIPPED").count(),
+            'error_count': test_executions.filter(result="ERROR").count(),
+        })
+
+    return render(request, 'test_suite/test_suite_detail.html', {
+        'object': testsuite,
+        'testcases': test_cases,
+        'recent_test_runs': test_run_data,
+    })
+
+
     # # Calculate testing statistics for each test case
     # test_case_stats = []
     # for testcase in test_cases:
@@ -202,10 +232,6 @@ def test_suite_detail(request, id):
     #         'successful_runs': successful_runs
     #     })
 
-    return render(request, 'test_suite/test_suite_detail.html', {
-        'object': testsuite,
-        'testcases': test_cases
-    })
 
 @login_required
 def test_suite_create(request):
@@ -215,6 +241,23 @@ def test_suite_create(request):
 def test_suite_edit(request, id):
     test_suite = TestSuite.objects.get(pk=id)
     return render(request, 'test_suite/test_suite_form.html', {'testsuite': test_suite})
+
+def test_suite_test_run_detail(request, suite_id, run_id):
+    # Get the test suite and test run
+    test_suite = get_object_or_404(TestSuite, id=suite_id)
+    test_run = get_object_or_404(TestRun, id=run_id)
+
+    # Get all test cases in the test suite
+    test_cases = test_suite.testcase_set.all()
+
+    # Fetch test executions from this test run that belong to the test suite
+    test_executions = TestExecution.objects.filter(run=test_run, testcase__in=test_cases)
+
+    return render(request, 'test_suite/test_suite_test_run_detail.html', {
+        'test_suite': test_suite,
+        'test_run': test_run,
+        'test_executions': test_executions,
+    })
 
 
 def test_run_list(request, user_id=None):

@@ -26,6 +26,7 @@ urlpatterns = [
     path('test-suites/', views.test_suite_list, name='test_suite_list'),
     path('test-suites/create/', views.test_suite_create, name='test_suite_create'),
     path('test-suites/<int:id>/', views.test_suite_detail, name='test_suite_detail'),
+    path('test-suites/<int:suite_id>/test-runs/<int:run_id>/', views.test_suite_test_run_detail, name='test_suite_test_run_detail'),
     path('test-suites/<int:id>/export/<str:format_type>/', views.export_testsuite, name='export_testsuite'),
     path('test-suites/edit/<int:id>/', views.test_suite_edit, name='test_suite_edit'),
     path('test-runs/', views.test_run_list, name='test_run_list'),

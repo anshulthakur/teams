@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Run Details for {{ test_suite.name }}{% endblock %}
+
+{% block extra_css %}
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <section>
+        <h4>Test Run Details for "{{ test_suite.name }}"</h4>
+        <h4>Test run on: {{ test_run.date|date:"M d, Y H:i" }}</h4>
+        <h4>Triggered by: {{ test_run.created_by.get_short_name|default:test_run.created_by.get_username }}</h4>
+        <h4>Notes: {{ test_run.notes|default:"No notes available" }}</h4>
+    </section>
+
+    <!-- Table of Test Results -->
+    <section class="mt-3 pt-2">
+        <table class="table table-bordered table-hover mt-4">
+            <thead>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Result</th>
+                    <th>Duration</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for execution in test_executions %}
+                <tr>
+                    <td>
+                        <a href="{% url 'teams_core:test_case_detail' execution.testcase.id %}">
+                            {{ execution.testcase.name }}
+                        </a>
+                    </td>
+                    <td class="{% if execution.result == 'PASS' %}table-success{% elif execution.result == 'FAIL' %}table-danger{% else %}table-warning{% endif %}">
+                        {{ execution.result }}
+                    </td>
+                    <td>{{ execution.duration }}</td>
+                    <td class="notes-column text-truncate" data-note="{{ execution.notes }}">
+                        {{ execution.notes|truncatechars:50 }}
+                        {% if execution.notes %}
+                            <a href="#" class="ms-2" onclick="showFullNotes(this)">
+                                <i class="bi bi-plus-circle"></i> <!-- Plus icon -->
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No test results available for this test suite in this test run.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+
+<!-- Modal for displaying full notes -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel">Notes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="notes-modal-content">
+                <!-- Content filled via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script defer>
+    function showFullNotes(element) {
+        event.preventDefault(); //Stop srolling out of view
+        const fullNote = element.closest('.notes-column').getAttribute('data-note');
+        document.getElementById('notes-modal-content').innerHTML = `<pre>${fullNote}</pre>`;
+        
+        // Show the modal
+        const notesModal = new bootstrap.Modal(document.getElementById('notesModal'));
+        notesModal.show();
+    }
+</script>
+{% endblock %}

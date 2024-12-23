@@ -49,5 +49,44 @@
             </tbody>
         </table>
     </section>
+
+    <!-- Recent Test Runs Section -->
+    <section>
+        <h3>Recent Test Runs</h3>
+        {% if recent_test_runs %}
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Total Tests Executed</th>
+                    <th>Results (Pass/Fail/Skipped/Error)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in recent_test_runs %}
+                <tr>
+                    <td>{{ data.test_run.date|date:"M d, Y H:i" }}</td>
+                    <td>{{ data.total_tests }}</td>
+                    <td>
+                        Pass: {{ data.pass_count }},
+                        Fail: {{ data.fail_count }},
+                        Skipped: {{ data.skipped_count }},
+                        Error: {{ data.error_count }}
+                    </td>
+                    <td>
+                        <!-- <a href="{% url 'teams_core:test_run_detail' data.test_run.id %}" class="btn btn-info btn-sm">View Details</a> -->
+                        <a href="{% url 'teams_core:test_suite_test_run_detail' object.id data.test_run.id %}">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No recent test runs available for this suite.</p>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}
