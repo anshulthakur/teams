@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 from django.template.loader import render_to_string
 
+from django.http import QueryDict
 from teams_core.models import TestCase, TestRun, TestExecution, TestSuite
 
 from notifications.models import Notification
@@ -285,7 +286,8 @@ def test_run_detail(request, id):
     if request.method == "PATCH":
         # Ensure the user has permission to publish/unpublish
         if request.user == test_run.created_by or request.user.is_staff:
-            publish = request.POST.get('published') == 'true'
+            body = QueryDict(request.body)
+            publish = body.get('published') == 'true'
             test_run.published = publish
             test_run.save()
 
