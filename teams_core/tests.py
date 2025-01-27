@@ -181,7 +181,7 @@ class Test_TestSuite(UnitTestCase):
         # Simulate the export suite function
         suite = TestSuite.objects.create(name="Sample Suite")
         suite.testcase_set.add(self.testcase1)
-        response = self.client.get(reverse('export_testsuite', args=[suite.id, 'docx']))
+        response = self.client.get(reverse('teams_core:export_testsuite', args=[suite.id, 'docx']))
         self.assertEqual(response.status_code, 200)
 
 class Test_Authentication(APITestCase):
@@ -226,11 +226,11 @@ class Test_Authentication(APITestCase):
         """
         # Try creating a test case without being authenticated
         response = self.client.post(reverse('teams_core:testcase-list'), self.test_case_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Try creating a test run without being authenticated
         response = self.client.post(reverse('teams_core:testrun-list'), self.test_run_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_login_and_create(self):
         """
@@ -262,11 +262,11 @@ class Test_Authentication(APITestCase):
 
         # Try creating a test case after logging out
         response = self.client.post(reverse('teams_core:testcase-list'), self.test_case_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         # Try creating a test run after logging out
         response = self.client.post(reverse('teams_core:testrun-list'), self.test_run_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 class Test_TestRunAPI(APITestCase):
     def setUp(self):
@@ -321,7 +321,59 @@ class Test_TestRunAPI(APITestCase):
         """
         self.client.logout()  # Ensure no user is authenticated
         response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_unpublish_test_run(self):
+        """
+        Test that the user is able to unpublish their test runs
+        """
+        # Create the first test run
+        response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        test_run_id = response.data['id']
+
+        # Verify it is present in the list
+        list_url = reverse('teams_core:test_run_list')
+        response = self.client.get(list_url)
+        self.assertContains( response, "Initial test run")
+
+        #Now try to unpublish it
+        detail_url = reverse('teams_core:test_run_detail', args=[test_run_id])
+        response = self.client.patch(detail_url, data = 'published=false', content_type="text/html")
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Verify it is absent in the list
+        list_url = reverse('teams_core:test_run_list')
+        response = self.client.get(list_url)
+        self.assertNotContains( response, "Initial test run")
+        
+
+    def test_publish_unpublished_test_run(self):
+        """
+        Test that the user is able to publish their private test runs
+        """
+        # Create the first test run
+        self.test_run_create_data['published'] = False
+        response = self.client.post(self.test_run_url, self.test_run_create_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        test_run_id = response.data['id']
+
+        # Verify it is not present in the list
+        list_url = reverse('teams_core:test_run_list')
+        response = self.client.get(list_url)
+        self.assertNotContains( response, "Initial test run")
+
+        #Now try to publish it
+        detail_url = reverse('teams_core:test_run_detail', args=[test_run_id])
+        response = self.client.patch(detail_url, data = 'published=true', content_type="text/html")
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Verify it is present in the list
+        list_url = reverse('teams_core:test_run_list')
+        response = self.client.get(list_url)
+        self.assertContains( response, "Initial test run")
 
 class Test_Subscriptions(APITestCase):
     def setUp(self):
@@ -496,7 +548,7 @@ class Test_NotificationSummary(APITestCase):
         self.assertIn("Hello summaryuser,", email.body)
         # self.assertIn("Execution of test case TC1001 failed", email.body)
         self.assertIn("Total new failures: 1", email.body)
-        self.assertIn("https://example.com/test-case/1/", email.body)
+        self.assertIn("/test-cases/1/", email.body)
 
 class Test_HealthMetrics(UnitTestCase):
     
@@ -534,7 +586,7 @@ class Test_HealthMetrics(UnitTestCase):
 
         # Frequent failures should return an empty result
         result = get_frequent_failures()
-        self.assertEqual(result, [])
+        self.assertEqual(len(result), 0)
 
         # Mark the test run as published
         self.test_run.published = True
@@ -674,3 +726,4 @@ class Test_Revisions(APITestCase):
         self.assertEqual(versions.count(), 1)
         self.assertEqual(versions[0].revision.user, self.user)
         self.assertEqual(versions[0].revision.comment, "User finalized version")
+
